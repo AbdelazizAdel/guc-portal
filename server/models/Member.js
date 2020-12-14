@@ -11,7 +11,7 @@ const MemberSchema = new Schema(
         name:String,
         email:String,
         password:String,
-        salary:String,
+        salary:Number,
         officeLoc:[Location],
         gender:{type:String,enum:['male','female']},
         attendance:Attendance,
