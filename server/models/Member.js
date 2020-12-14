@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-const Slot = require('./Slot');
-const Request = require('./Request.js');
-const Location = require('./Location.js');
-const Course = require('./Course.js');
-const Attendance = require('./Attendance.js');
+const SlotSchema = require('./Slot').schema;
+const RequestSchema = require('./Request.js').schema;
+const LocationSchema = require('./Location.js').schema;
+const CourseSchema = require('./Course.js').schema;
+const AttendanceSchema = require('./Attendance.js').schema;
 const MemberSchema = new Schema(
     {
         id:{type:String,unique:true},
@@ -12,15 +12,15 @@ const MemberSchema = new Schema(
         email:String,
         password:String,
         salary:Number,
-        officeLoc:[Location],
+        officeLoc:[LocationSchema],
         gender:{type:String,enum:['male','female']},
-        attendance:Attendance,
-        assignedCourses:[Course],
+        attendance:AttendanceSchema,
+        assignedCourses:[CourseSchema],
         academicType:[String],
-        requests:[Request],
-        teachingSlots:[Slot]
+        requests:[RequestSchema],
+        teachingSlots:[SlotSchema]
 
 
     }
 );
-module.exports = mongoose.model('Member',MemberSchema);
+module.exports = {model : mongoose.model('Member',MemberSchema), schema:MemberSchema};

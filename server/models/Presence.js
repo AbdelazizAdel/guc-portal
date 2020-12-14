@@ -5,4 +5,4 @@ const PresenceSchema = new Schema({
     endDate: Date,
     memberID: {type:Schema.Types.ObjectId, ref:'Member'}
 });
-module.exports = mongoose.model('Presence', PresenceSchema);
+module.exports = {model:mongoose.model('Presence', PresenceSchema),schema:PresenceSchema};
