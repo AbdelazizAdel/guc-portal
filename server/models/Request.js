@@ -1,14 +1,14 @@
 const mongoose = require('mongoose');
 
-const Slot = require("./Slot.js");
+const SlotSchema = require("./Slot.js").schema;
 
-const RequestScheme = new mongoose.Schema({
+const RequestSchema = new mongoose.Schema({
     to: String,
     from: String,
     content: String,
     status: String,
     type: String,
-    slot: Slot,
+    slot: SlotSchema,
     day: Number,
     submissionDate: Date,
     duration: Number,
@@ -16,4 +16,4 @@ const RequestScheme = new mongoose.Schema({
 }, {strict: false, timestamps: true});
 
 
-module.exports = mongoose.model("Request", RequestScheme);
+module.exports = {model:mongoose.model("Request", RequestSchema),schema:RequestSchema};
