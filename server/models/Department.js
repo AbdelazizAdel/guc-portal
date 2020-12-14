@@ -23,11 +23,5 @@ const DepartmentSchema = new mongoose.Schema({
 );
 
 
-<<<<<<< HEAD
-module.exports = {
-    model : mongoose.model('Department', DepartmentScheme),
-    schema : DepartmentScheme
-};
-=======
+
 module.exports ={model: mongoose.model('Department', DepartmentSchema),schema:DepartmentSchema};
->>>>>>> 4bf2fd047ccc3b6c82bc7d234bdd34f99e419fee
