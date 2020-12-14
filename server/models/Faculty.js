@@ -12,7 +12,7 @@ const FacultyScheme = new mongoose.Schema({
         type: String,
         required: true
     },
-    departments:[Department]
+    departments:[Department.schema]
     
 }, {strict: false, timestamps: true});
 
