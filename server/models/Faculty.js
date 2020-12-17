@@ -1,8 +1,6 @@
 const mongoose = require('mongoose');
 
-const DepartmentSchema = require('./Department.js').schema;
-
-const FacultySchema = new mongoose.Schema({
+const FacultyScheme = new mongoose.Schema({
     id:{
         type: String,
         unique: true,
@@ -12,9 +10,9 @@ const FacultySchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    departments:[DepartmentSchema]
+    departments:[String]
     
 }, {strict: false, timestamps: true});
 
 
-module.exports = {model:mongoose.model('Faculty', FacultySchema),schema:DepartmentSchema};
+module.exports = mongoose.model('Faculty', FacultyScheme);

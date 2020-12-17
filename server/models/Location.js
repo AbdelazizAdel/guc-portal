@@ -1,14 +1,10 @@
 const mongoose = require('mongoose');
 
 
-const LocationSchema = new mongoose.Schema({
-    id:{
+const LocationScheme = new mongoose.Schema({
+    name:{
         type: String,
         unique: true,
-        required: true
-    },
-    roomNum:{
-        type: String,
         required: true
     },
     capacity: Number,
@@ -16,4 +12,4 @@ const LocationSchema = new mongoose.Schema({
 }, {strict: false, timestamps: true}
 );
 
-module.exports = {model:mongoose.model("Location", LocationSchema),schema:LocationSchema};
+module.exports = mongoose.model("Location", LocationScheme);

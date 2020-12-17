@@ -1,9 +1,7 @@
 const mongoose = require('mongoose');
 
-const MemberSchema = require('./Member.js').schema;
-const CourseSchema = require("./Course.js").schema;
 
-const DepartmentSchema = new mongoose.Schema({
+const DepartmentScheme = new mongoose.Schema({
     id:{
         type: String,
         unique: true,
@@ -13,15 +11,13 @@ const DepartmentSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    teachingStaff:[MemberSchema],
     HOD:{
-        type: MemberSchema
+        type: String
     },
-    courses:[CourseSchema]
+    courses:[String]
 }
 , {strict: false, timestamps: true}
 );
 
 
-
-module.exports ={model: mongoose.model('Department', DepartmentSchema),schema:DepartmentSchema};
+module.exports = mongoose.model('Department', DepartmentScheme);
