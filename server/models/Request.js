@@ -5,14 +5,14 @@ const SlotSchema = require("./Slot.js").schema;
 const RequestSchema = new mongoose.Schema({
     to: String,
     from: String,
-    content: String,
     status: String,
+    content: String,
+    comment: String,
     type: String,
-    slot: SlotSchema,
-    day: Number,
     submissionDate: Date,
+    startDate: Date,
     duration: Number,
-    startDate: Date
+    slot: Number
 }, {strict: false, timestamps: true});
 
 
