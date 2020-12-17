@@ -1,7 +1,5 @@
 const mongoose = require('mongoose');
 
-const Department = require('./Department.js');
-
 const FacultyScheme = new mongoose.Schema({
     id:{
         type: String,
@@ -12,7 +10,7 @@ const FacultyScheme = new mongoose.Schema({
         type: String,
         required: true
     },
-    departments:[Department]
+    departments:[Number]
     
 }, {strict: false, timestamps: true});
 

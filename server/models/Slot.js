@@ -1,16 +1,16 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const Location = require('./Location.js');
-const Course = require('./Course.js');
-const Member = require('./Member.js');
+
 const SlotSchema = new Schema({
-    startDate:  Date,
-    endDate: Date,
-    location: Location,
-    course:Course,
-    instructor:Member,
-    slotType:String
+    id:{type: Number, unique: true, required: true},
+    day: {type: Number, required: true},
+    period: {type: Number, required: true},
+    location: {type: String, required: true},
+    slotType: String,
+    course: String,
+    instructor: String
 }
 );
+
 module.exports = mongoose.model('Slot',SlotSchema);
