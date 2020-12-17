@@ -4,7 +4,7 @@ const app = require('../server/app.js');
 const supertest = require('supertest');
 const request = supertest(app);
 const mongoose = require('mongoose');
-const memberModel = require('../server/models/Member.js');
+const memberModel = require('../server/models/Member.js').model;
 
 try {
     (async () => {await mongoose.connect(process.env.DB_URL_TEST, {
