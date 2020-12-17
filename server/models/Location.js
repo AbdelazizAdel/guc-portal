@@ -7,10 +7,6 @@ const LocationSchema = new mongoose.Schema({
         unique: true,
         required: true
     },
-    roomNum:{
-        type: String,
-        required: true
-    },
     capacity: Number,
     type: String
 }, {strict: false, timestamps: true}

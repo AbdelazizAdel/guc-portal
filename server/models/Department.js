@@ -1,7 +1,5 @@
 const mongoose = require('mongoose');
 
-const MemberSchema = require('./Member.js').schema;
-const CourseSchema = require("./Course.js").schema;
 
 const DepartmentSchema = new mongoose.Schema({
     id:{
@@ -13,11 +11,10 @@ const DepartmentSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    teachingStaff:[MemberSchema],
     HOD:{
-        type: MemberSchema
+        type: String
     },
-    courses:[CourseSchema]
+    courses:[String]
 }
 , {strict: false, timestamps: true}
 );
