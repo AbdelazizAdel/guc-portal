@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 
-const SlotSchema = require("./Slot.js").schema;
+const Slot = require("./Slot.js");
 
-const RequestSchema = new mongoose.Schema({
-    to: String,
-    from: String,
+const RequestScheme = new mongoose.Schema({
+    sender: String,
+    receiver: String,
     status: String,
     content: String,
     comment: String,
@@ -16,4 +16,4 @@ const RequestSchema = new mongoose.Schema({
 }, {strict: false, timestamps: true});
 
 
-module.exports = {model:mongoose.model("Request", RequestSchema),schema:RequestSchema};
+module.exports = mongoose.model("Request", RequestScheme);

@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const ReplacementSlotScheme = new mongoose.Schema({
-    id: {type: Number, required: true, unique: true},
+    id: {type: String, required: true, unique: true},
     day: Number,
     period: Number,
     date: Date, 

@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 
-const CourseSchema = new mongoose.Schema({
+const CourseScheme = new mongoose.Schema({
     id:{
         type: String,
         unique: true,
@@ -19,4 +19,4 @@ const CourseSchema = new mongoose.Schema({
 );
 
 
-module.exports = {model:mongoose.model("Course", CourseSchema),schema:CourseSchema};
+module.exports = mongoose.model("Course", CourseScheme)
