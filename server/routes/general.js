@@ -3,9 +3,11 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const express = require('express');
 const router = express.Router();
-const memberModel = require('../models/Member').model;
+const memberModel = require('../models/StaffMember').model;
 
+// middleware for transforming String int JSON
 router.use(express.json());
+//middleware for authentication
 router.use((req, res, next) => {
     const token = req.headers.auth_token;
     try {
@@ -17,9 +19,10 @@ router.use((req, res, next) => {
         res.send('Please Log in to view this page');
     }
 });
+// route for viewing profile
 router.post('/profile', async (req, res) => {
     const id = req.body.memberID;
-    const member = memberModel.find({id});
+    const member = await memberModel.find({id});
     if(member.length == 0) {
         res.send('no such user exists');
     }
