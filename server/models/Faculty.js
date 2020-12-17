@@ -10,9 +10,9 @@ const FacultyScheme = new mongoose.Schema({
         type: String,
         required: true
     },
-    departments:[Number]
+    departments:[String]
     
 }, {strict: false, timestamps: true});
 
 
-module.exports = {model:mongoose.model('Faculty', FacultySchema),schema:DepartmentSchema};
+module.exports = mongoose.model('Faculty', FacultyScheme);

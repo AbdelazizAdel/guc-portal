@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 
 const SlotSchema = new Schema({
-    id:{type: Number, unique: true, required: true},
+    id:{type: String, unique: true, required: true},
     day: {type: Number, required: true},
     period: {type: Number, required: true},
     location: {type: String, required: true},

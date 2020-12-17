@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 
-const DepartmentSchema = new mongoose.Schema({
+const DepartmentScheme = new mongoose.Schema({
     id:{
         type: String,
         unique: true,
@@ -20,6 +20,4 @@ const DepartmentSchema = new mongoose.Schema({
 );
 
 
-
-module.exports ={model: mongoose.model('Department', DepartmentSchema),schema:DepartmentSchema};
-
+module.exports = mongoose.model('Department', DepartmentScheme);
