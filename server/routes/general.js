@@ -18,14 +18,14 @@ router.post('/login', async(req, res) => {
     const isCorrect = await bcrypt.compare(password, member.password);
     if(!isCorrect)
         return res.send('wrong password');
-    await memberModel.findOneAndUpdate({email}, {loggedIn : true});
+    await memberModel.updateOne({email}, {loggedIn : true});
     const token = jwt.sign({id : member.id}, process.env.TOKEN_SECRET);
     res.header('auth_token', token).send(token);
 });
 
 //route for logging out
 router.get('/logout', [authentication], async(req, res) => {
-    await memberModel.findOneAndUpdate({id : req.body.memberID}, {loggedIn : false});
+    await memberModel.updateOne({id : req.body.memberID}, {loggedIn : false});
     res.send('logged out successfully');
 })
 
@@ -39,5 +39,26 @@ router.get('/profile', [authentication], async (req, res) => {
         return res.send("Please Log in to view your profile");
     res.send(member);
 });
+
+//route for changing password
+router.post('/changePassword', [authentication], async(req, res) => {
+    const {oldPass, newPass, memberID} = req.body;
+    const member = await memberModel.findOne({id : memberID});
+    if(member == null)
+        return res.send('no such user exists');
+    if(!member.loggedIn)
+        return res.send('you must be logged in to change your password');
+    if(oldPass == undefined)
+        return res.send('old password is required');
+    if(newPass == undefined)
+        return res.send('new Password is required');
+    const isCorrect = await bcrypt.compare(oldPass, member.password);
+    if(!isCorrect)
+        return res.send('old password is incorrect');
+    const salt = await bcrypt.genSalt();
+    const hashedPass = await bcrypt.hash(newPass, salt);
+    await memberModel.updateOne({id : memberID}, {password : hashedPass});
+    res.send('password changed succesfully');
+})
 
 module.exports = router;
