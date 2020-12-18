@@ -1,34 +1,43 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose');
 const express = require('express');
 const router = express.Router();
-const memberModel = require('../models/StaffMember').model;
+const memberModel = require('../models/StaffMember');
+const {authentication} = require('./middleware');
 
-// middleware for transforming String int JSON
-router.use(express.json());
-//middleware for authentication
-router.use((req, res, next) => {
-    const token = req.headers.auth_token;
-    try {
-        const payload = jwt.verify(token, process.env.TOKEN_SECRET);
-        req.body.memberID = payload.id;
-        next();
-    }
-    catch(err) {
-        res.send('Please Log in to view this page');
-    }
+//route for logging in
+router.post('/login', async(req, res) => {
+    const {email, password} = req.body;
+    if(email == undefined)
+        return res.send("please enter an email");
+    if(password == undefined)
+        return res.send('please enter a password');
+    const member = await memberModel.findOne({email});
+    if(member == null)
+        return res.send("There is no user with such email");
+    const isCorrect = await bcrypt.compare(password, member.password);
+    if(!isCorrect)
+        return res.send('wrong password');
+    await memberModel.findOneAndUpdate({email}, {loggedIn : true});
+    const token = jwt.sign({id : member.id}, process.env.TOKEN_SECRET);
+    res.header('auth_token', token).send(token);
 });
+
+//route for logging out
+router.get('/logout', [authentication], async(req, res) => {
+    await memberModel.findOneAndUpdate({id : req.body.memberID}, {loggedIn : false});
+    res.send('logged out successfully');
+})
+
 // route for viewing profile
-router.post('/profile', async (req, res) => {
+router.get('/profile', [authentication], async (req, res) => {
     const id = req.body.memberID;
-    const member = await memberModel.find({id});
-    if(member.length == 0) {
-        res.send('no such user exists');
-    }
-    else {
-        res.send(member[0]);
-    }
+    const member = await memberModel.findOne({id});
+    if(member == null)
+        return res.send('no such user exists');
+    if(!member.loggedIn)
+        return res.send("Please Log in to view your profile");
+    res.send(member);
 });
 
 module.exports = router;
