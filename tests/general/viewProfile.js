@@ -42,7 +42,7 @@ describe("testing view profile route", () => {
         const token = response.headers.auth_token;
         await request.get('/logout').set('auth_token', token);
         const profile = await request.get('/profile').set('auth_token', token);
-        expect(profile.text).toMatch("Please Log in to view your profile");
+        expect(profile.text).toMatch("You are not currently logged in");
     })
 
 })
