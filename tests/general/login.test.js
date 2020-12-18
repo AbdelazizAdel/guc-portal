@@ -3,9 +3,9 @@ const supertest = require('supertest');
 const request = supertest(app);
 const dotenv = require('dotenv');
 dotenv.config();
-const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
 const memberModel = require('../../server/models/StaffMember.js');
+const {createMember} = require('./helper');
 
 try {
     (async () => {await mongoose.connect(process.env.DB_URL_TEST, {
@@ -21,24 +21,7 @@ beforeEach(async () => {
     await memberModel.deleteMany();
 });
 
-async function createMember() {
-    const member = new memberModel({
-        id : 'ac-1',
-        password: 'kcsckcsk',
-        email : 'zizo.1999@live.com',
-        loggedIn : false
-    });
-    const plainTextPassword = member.password;
-    const salt = await bcrypt.genSalt();
-    const hashedPass = await bcrypt.hash(member.password, salt);
-    member.password = hashedPass;
-    return {
-        member,
-        plainTextPassword
-    };
-}
-
-describe("testing login route", async() => {
+describe("testing login route", () => {
 
     test('testing successful login', async() => {
         const {member, plainTextPassword} = await createMember();
@@ -62,4 +45,18 @@ describe("testing login route", async() => {
         const res = await request.post('/login').send({email : member.email, password : plainTextPassword + "jcns"});
         expect(res.text).toMatch('wrong password');
     })
+
 });
+
+describe("testing logout route", () => {
+
+    test("testing database update on logout", async() => {
+        const {member, plainTextPassword} = await createMember();
+        await member.save();
+        const response = await request.post('/login').send({email : member.email, password : plainTextPassword});
+        const token = response.headers.auth_token;
+        await request.get('/logout').set('auth_token', token);
+        const dbRes = await memberModel.findOne({id : member.id});
+        expect(dbRes.loggedIn).not.toBeTruthy();
+    })
+})
