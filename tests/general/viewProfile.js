@@ -21,46 +21,6 @@ beforeEach(async () => {
     await memberModel.deleteMany();
 });
 
-describe("testing login route", () => {
-
-    test('testing successful login', async() => {
-        const {member, plainTextPassword} = await createMember();
-        await member.save();
-        const res = await request.post('/login').send({email : member.email, password : plainTextPassword});
-        expect(res.headers.auth_token).not.toBeUndefined();
-        const dbRes = await memberModel.findOne({id : member.id});
-        expect(dbRes.loggedIn).toBeTruthy();
-    })
-
-    test("testing login with wrong email", async() => {
-        const {member, plainTextPassword} = await createMember();
-        await member.save();
-        const res = await request.post('/login').send({email : member.email + "sjcn", password : plainTextPassword});
-        expect(res.text).toMatch('There is no user with such email');
-    })
-
-    test("testing login with wrong password", async() => {
-        const {member, plainTextPassword} = await createMember();
-        await member.save();
-        const res = await request.post('/login').send({email : member.email, password : plainTextPassword + "jcns"});
-        expect(res.text).toMatch('wrong password');
-    })
-
-});
-
-describe("testing logout route", () => {
-
-    test("testing database update on logout", async() => {
-        const {member, plainTextPassword} = await createMember();
-        await member.save();
-        const response = await request.post('/login').send({email : member.email, password : plainTextPassword});
-        const token = response.headers.auth_token;
-        await request.get('/logout').set('auth_token', token);
-        const dbRes = await memberModel.findOne({id : member.id});
-        expect(dbRes.loggedIn).not.toBeTruthy();
-    })
-})
-
 describe("testing view profile route", () => {
 
     test("testing view profile route when logged in", async() => {
