@@ -13,7 +13,7 @@ const RequestScheme = new mongoose.Schema({
     startDate: Date,
     duration: Number,
     slot: Number,
-    attachemehtURL : String
+    attachmentURL : String
 }, {strict: false, timestamps: true});
 
 
