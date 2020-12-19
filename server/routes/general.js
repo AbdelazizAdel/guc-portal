@@ -50,4 +50,24 @@ router.post('/changePassword', [authentication], async(req, res) => {
     res.send('password changed succesfully');
 })
 
+// function that tests email format
+function emailIsValid (email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
+// route for updating profile
+router.post('/updateProfile', [authentication], async(req, res) => {
+    const {gender, email, member} = req.body;
+    if(gender !== undefined && gender !== 'male' && gender !== 'female')
+        return res.send('this is not a valid gender');
+    if(email != undefined && !emailIsValid(email))
+        return res.send('this is not a valid email');
+    if(email != undefined)
+        member.email = email;
+    if(gender != undefined)
+        member.gender = gender;
+    await memberModel.updateOne({id : member.id}, member);
+    res.send('profile updated successfully');
+})
+
 module.exports = router;
