@@ -14,7 +14,10 @@ const StaffMemberSchema = new Schema(
         leaves: Number, // indicates the number of leaves the staff member has taken
         attendance:[{signIn: Date, signOut: Date}],
         startDay: Date,    // The day on which the Staff member started his job at the University
-        loggedIn: Boolean // determines if this user is logged in or not (has a valid token)
+        loggedIn: Boolean, // determines if this user is logged in or not (has a valid token)
+        notifications : [String],
+        firstLogin : Boolean,
+        department : String
     }
 );
 module.exports = mongoose.model('StaffMember', StaffMemberSchema);
