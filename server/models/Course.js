@@ -14,7 +14,9 @@ const CourseScheme = new mongoose.Schema({
     coordinator: String,
     TAs:[String],
     instructors:[String],
-    numSlots: Number
+    numSlots: Number,
+    mainDepartment : String,
+    teachingDepartments : [String]
 }, {strict: false, timestamps: true}
 );
 

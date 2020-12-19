@@ -1,3 +1,4 @@
+
 const mongoose = require('mongoose');
 
 
@@ -13,8 +14,7 @@ const DepartmentScheme = new mongoose.Schema({
     },
     HOD:{
         type: String
-    },
-    courses:[String]
+    }
 }
 , {strict: false, timestamps: true}
 );
