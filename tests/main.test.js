@@ -1,0 +1,1 @@
+require('./CourseInstructor/courseCoverage.js');
