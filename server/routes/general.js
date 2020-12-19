@@ -60,7 +60,7 @@ router.post('/updateProfile', [authentication], async(req, res) => {
     const {gender, email, member} = req.body;
     if(gender !== undefined && gender !== 'male' && gender !== 'female')
         return res.send('this is not a valid gender');
-    if(email != undefined && !emailIsValid(email))
+    if(email !== undefined && !emailIsValid(email))
         return res.send('this is not a valid email');
     if(email != undefined)
         member.email = email;
@@ -81,7 +81,27 @@ router.get('/signin', [authentication], async(req, res) => {
         member.attendance = [];
     member.attendance.concat([record]);
     await memberModel.updateOne({id : member.id}, member);
-    res.send('sign in recorded');
+    res.send('sign in recorded successfully');
+})
+
+router.get('/signout', [authentication], async(req, res) => {
+    const {attendance} = req.body.member;
+    const signOutDate = Date.now();
+    if(attendance === undefined || attendance.length === 0) 
+        attendance = [{signOut : signOutDate}];
+    else {
+        const last = attendance[attendance.length - 1];
+        if(last.signIn === undefined || last.signOut !== undefined)
+            attendance[attendance.length] = {signOut : signOutDate};
+        else {
+            if(last.signIn.getDay() === signOutDate.getDay())
+                attendance[attendance.length - 1].signOut = signOutDate;
+            else
+            attendance[attendance.length] = {signOut : signOutDate};
+        }
+    }
+    await memberModel.updateOne({id : req.body.member.id}, {attendance});
+    res.send('signout recorded successfully');
 })
 
 module.exports = router;
