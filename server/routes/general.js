@@ -70,4 +70,18 @@ router.post('/updateProfile', [authentication], async(req, res) => {
     res.send('profile updated successfully');
 })
 
+//route for signing in
+//TODO check if authentication is required or not
+router.get('/signin', [authentication], async(req, res) => {
+    const {member} = req.body;
+    const record = {
+        signIn : Date.now
+    };
+    if(member.attendance == undefined)
+        member.attendance = [];
+    member.attendance.concat([record]);
+    await memberModel.updateOne({id : member.id}, member);
+    res.send('sign in recorded');
+})
+
 module.exports = router;
