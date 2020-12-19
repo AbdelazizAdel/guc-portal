@@ -1,28 +1,9 @@
 const express = require('express');
-const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+
 const StaffMember = require('../models/StaffMember.js');
 const Slot = require('../models/Slot.js');
 const Course = require('../models/Course.js');
 const router = express.Router();
-const dummmy = require('mongoose-dummy');
-const ignoredFields = ['_id', '__v'];
-// const Authenticate = (req,res,next)=>{
-//     const token = req.headers.authorization.split(' ')[1];
-//     console.log(token);
-//     console.log(process.env.TOKEN_SECRET);
-//     jwt.verify(token,process.env.TOKEN_SECRET,(err,id)=>{
-//         if(err){
-//             console.log(err);
-//              return res.sendStatus('404');
-//              return 0;
-//         }
-
-//         req.body.id= id;
-//         next();
-//     });
-// }
 router.use(express.json());
 router.post('/StaffMembers',(req,res)=>{
 

@@ -29,8 +29,8 @@ beforeEach(async () => {
 describe('Testing Course Coverage route',()=>{
     it('A case where the Slot model will not return any records',
     async ()=>{
-        const member = createStaffMamber('Ashry19','ashry@yahoo.com','ashduia','Mohammed Ashry','male',7000,3,'C6.305',6,[]);
-        const course1 = createCourse('course1','Advanced Computer Lab','Mervat22',['Ashry19'],['Hany5'],6);
+        const member = createStaffMamber('Ashry19','ashry@yahoo.com','ashduia','Mohammed Ashry','male',7000,3,'C6.305',6,[],undefined,true,[],true,'dep1');
+        const course1 = createCourse('course1','Advanced Computer Lab','Mervat22',['Ashry19'],['Hany5'],6,'dep1',['dep1','dep2']);
         const course2 = createCourse('course2','SoftwareEngineering','Ayman6',['Menrit28'],['Walid7'],10);
         const slot1 = createSlot('slot1',2,1,'C7.301','Lab','course2','Menrit28');
         const slot2 = createSlot('slot2',1,1,'C7.304','Lab','course1');
@@ -39,7 +39,10 @@ describe('Testing Course Coverage route',()=>{
         await course2.save();
         await slot1.save();
         await slot2.save();
-        const output = await (await request.get('/members/Ashry19/coverage')).body;
+        
+
+        const output =  await(await request.get('/members/Ashry19/coverage')).body;
+        //console.log(output);
         expect(output['Advanced Computer Lab']).toBe(0);
         expect(output['SoftwareEngineering']).toBe(undefined);
     },10000),

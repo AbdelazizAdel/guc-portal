@@ -1,1 +1,2 @@
-require('./CourseInstructor/courseCoverage.js');
+require('./general/general.js');
+require('./CourseInstructor/CourseInstructor.js');
