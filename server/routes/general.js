@@ -232,8 +232,9 @@ router.get('/missingDays', [authentication], async(req, res) => {
         else {
             let acceptedRequests = requests.filter((elem) => {
                 let low = elem.startDate.getTime();
-                let high = elem.duration == undefined ? 1 : elem.duration;
-                if(date.getTime() >= low && date.getTime() <= high)
+                let offset = elem.duration == undefined ? 1 : elem.duration;
+                let high = low + offset * 86400000;
+                if(date.getTime() >= low && date.getTime() < high)
                     return true;
                 return false;
             })
