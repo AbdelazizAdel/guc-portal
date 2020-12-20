@@ -3,9 +3,12 @@ const jwt = require('jsonwebtoken');
 const express = require('express');
 const router = express.Router();
 const memberModel = require('../models/StaffMember');
+const requestModel = require('../models/Request');
 const {authentication} = require('./middleware');
 const superagent = require('superagent');
 const { response } = require('express');
+
+//TODO: change 86400000 to accomodate for the fact that 0 miliseconds start from 2:00 am not 0:00 am
 
 //route for logging in
 //TODO prompt user to change password on first login
@@ -181,18 +184,86 @@ async function getAttendanceRecords(token) {
     return records;
 }
 
+// route for getting missing days
+router.get('/missingDays', [authentication], async(req, res) => {
+    const {dayoff, id} = req.body.member;
+    const records = await getAttendanceRecords(req.headers.auth_token);
+    if(records.length == 0)
+        return res.send([]);
+    const start = records[0], end = records[records.length - 1];
+    const startDay = start.signIn == undefined ? start.signOut.getDate() : start.signIn.getDate();
+    const endDay = end.signIn == undefined ? end.signOut.getDate() : end.signIn.getDate();
+    let numDays = 0;
+    if(endDay >= startDay)
+        numDays = endDay - startDay;
+    else {
+        const numDaysCurMonth = new Date(start.signIn.getFullYear(), start.signIn.getMonth(), 0).getDate();
+        numDays = endDay + numDaysCurMonth - 11 + 1;
+    }
+    let firstDay;
+    if(start.signIn !== undefined)
+        fisrtDay = new Date(start.signIn.getFullYear(), start.signIn.getMonth(), start.signIn.getDate()).getTime();
+    else
+        firstDay = new Date(start.signOut.getFullYear(), start.signOut.getMonth(), start.signOut.getDate()).getTime();
+    let days = {};
+    for(let i = 0; i < numDays; i++)
+        days[String(firstDay + i * 86400000)] = true;
+    for(let i = 0; i < records.length; i++) {
+        const{signIn, signOut} = records[i];
+        if(signIn == undefined || signOut == undefined)
+            continue;
+        const year = signIn.getFullYear(), month = signIn.getMonth(), day = signIn.getDate();
+        const min = new Date(year, month, day, 7).getTime(), max = new Date(year, month, day, 19).getTime();
+        if(signIn.getTime() > max || signOut.getTime() < min)
+            continue;
+        const index = String(new Date(start.signIn.getFullYear(), start.signIn.getMonth(), start.signIn.getDate()).getTime());
+        days[index] = false;
+    }
+    const requests = await requestModel.find({sender : id, status : 'accepted'}).or([
+        {type : 'annual'}, {type : 'accidental'}, {type : 'sick'}, {type : 'maternity'}
+    ]);
+
+    for(let i = 0; i < numDays; i++) {
+        let date = new Date(firstDay + i * 86400000);
+        let day = date.getDay();
+        if(day == 5 || day == dayoff) {
+            days[String(date.getTime())] = false;
+        }
+        else {
+            let acceptedRequests = requests.filter((elem) => {
+                let low = elem.startDate.getTime();
+                let high = elem.duration == undefined ? 1 : elem.duration;
+                if(date.getTime() >= low && date.getTime() <= high)
+                    return true;
+                return false;
+            })
+            if(acceptedRequests.length > 0)
+                days[date.getTime()] = false;
+        }
+    }
+    let result = [];
+    for(let i = 0 ; i < numDays; i++) {
+        let date = new Date(firstDay + i * 86400000);
+        if(days[String(date.getTime())] == true)
+            result[result.length] = date;
+    }
+    res.send(result);
+})
+
 //route for getting missing hours or extra hours
 router.get('/missingHours', [authentication], async(req, res) => {
     const records = await getAttendanceRecords(req.headers.auth_token);
     let result = 0;
     for(let i = 0; i < records.length; i++) {
-        const{signIn, signOut} = result[i];
+        const{signIn, signOut} = records[i];
         if(signIn == undefined || signOut == undefined)
             continue;
         const year = signIn.getFullYear(), month = signIn.getMonth(), day = signIn.getDate();
         const start = new Date(year, month, day, 7), end = new Date(year, month, day, 19);
-        signIn = Math.max(start, signIn);
-        signOut = Math.min(end, signOut);
+        if(signIn.getTime() > end.getTime() || signOut.getTime() < start.getTime())
+            continue; 
+        signIn = Math.max(start.getTime(), signIn.getTime());
+        signOut = Math.min(end.getTime(), signOut.getTime());
         const spentTime = (signOut - signIn) / (1000 * 60 * 60);
         result+= 8.24 - spentTime;
     }
