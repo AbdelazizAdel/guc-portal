@@ -4,8 +4,11 @@ const express = require('express');
 const router = express.Router();
 const memberModel = require('../models/StaffMember');
 const {authentication} = require('./middleware');
+const superagent = require('superagent');
+const { response } = require('express');
 
 //route for logging in
+//TODO prompt user to change password on first login
 router.post('/login', async(req, res) => {
     const {email, password} = req.body;
     if(email == undefined)
@@ -162,5 +165,38 @@ router.get('/attendance/:year/:month', [authentication], (req, res) => {
     res.send(result);
 })
 
+// function for getting attendance records based on the current day
+async function getAttendanceRecords(token) {
+    const curDate = Date.now(), curYear = curDate.getFullYear(), curMonth = curDate.getMonth(), curDay = curDate.getDate();
+    let year, month;
+    if(curDay >= 11) {
+        year = curYear;
+        month = curMonth;
+    }
+    else {
+        year = curMonth == 0 ? curYear - 1 : curYear;
+        month = curMonth == 0 ? 11 : month - 1;
+    }
+    const records = await superagent.get(`http://localhost:3000/${year}/${month}`).set('auth_token', token);
+    return records;
+}
+
+//route for getting missing hours or extra hours
+router.get('/missingHours', [authentication], async(req, res) => {
+    const records = await getAttendanceRecords(req.headers.auth_token);
+    let result = 0;
+    for(let i = 0; i < records.length; i++) {
+        const{signIn, signOut} = result[i];
+        if(signIn == undefined || signOut == undefined)
+            continue;
+        const year = signIn.getFullYear(), month = signIn.getMonth(), day = signIn.getDate();
+        const start = new Date(year, month, day, 7), end = new Date(year, month, day, 19);
+        signIn = Math.max(start, signIn);
+        signOut = Math.min(end, signOut);
+        const spentTime = (signOut - signIn) / (1000 * 60 * 60);
+        result+= 8.24 - spentTime;
+    }
+    res.send(result);
+})
 
 module.exports = router;
