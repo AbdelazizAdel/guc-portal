@@ -107,20 +107,60 @@ router.get('/signout', [authentication], async(req, res) => {
     res.send('signout recorded successfully');
 })
 
-// route for viewing attendance
-router.get('/attendance', [authentication], async(req, res) => {
-    const {attendance} = req.body.member;
-    const {month} = req.query;
-    if(month !== undefined) {
-        if(!(typeof(month) == 'number' && month >= 0 && month <= 11))
-            return res.send('this is not a valid month');
-        const result = attendance.filter((record) => {
-            return (record.signIn !== undefined && record.signIn.getMonth() === month) ||
-            (record.signOut !== undefined && record.signOut.getMonth() === month);
-        });
-        return res.send(result);
-    }
-    res.send(attendance);
+// route for viewing all attendance records
+router.get('/attendance', [authentication], (req, res) => {
+    res.send(req.body.member.attendance);
 })
+
+// function which checks for valid year
+function isYearValid(year) {
+    return /^\d{4}$/.test(year);
+}
+
+// function which checks for valid month
+function isMonthValid(month) {
+    return /^(0[0-9]|1[0-1])$/.test(day);
+}
+
+// route for viewing attendance of a specific month
+router.get('/attendance/:year/:month', [authentication], (req, res) => {
+    const {attendance} = req.body.member;
+    const {year, month} = req.params;
+    if(!isYearValid(year))
+        return res.send('this is not a valid year');
+    if(!isMonthValid(month))
+        return res.send('this is not a valid month');
+    year = Number(year);
+    month = Number(month);
+    let result = [];
+    const curDate = Date.now(), curYear = curDate.getFullYear(), curMonth = curDate.getMonth(), curDay = curDate.getDate();
+    if(year === curYear && month === curMonth) {
+        if(curDay > 11) {
+            const start = new Date(year, month, 1).getTime(), end = new Date(year, month, curDay).getTime() - 1;
+            result = attendance.filter((elem) => {
+                const signIntime = elem.signIn === undefined ? -1 : elem.signIn.getTime();
+                const signOutTime = elem.signOut === undefined ? -1 : elem.signOut.getTime();
+                return (signIntime >= start && signIntime <= end) || (signOutTime >= start && signOutTime <= end); 
+            });
+        }
+    }
+    else if(year <= curYear && month <= curMonth) {
+        const nextYear = month == 11 ? year + 1 : year;
+        const nextMonth = month == 11 ? 0 : month + 1;
+        const eleventhDayNextMonth = new Date(nextYear, nextMonth, 11);
+        let start = new Date(year, month, 11).getTime(), end;
+        if(curDate.getTime() >= eleventhDayNextMonth)
+            end = eleventhDayNextMonth.getTime() - 1;
+        else
+            end = new Date(curYear, curMonth, curDay).getTime() - 1;
+        result = attendance.filter((elem) => {
+            const signIntime = elem.signIn === undefined ? -1 : elem.signIn.getTime();
+            const signOutTime = elem.signOut === undefined ? -1 : elem.signOut.getTime();
+            return (signIntime >= start && signIntime <= end) || (signOutTime >= start && signOutTime <= end); 
+        });
+    }
+    res.send(result);
+})
+
 
 module.exports = router;
