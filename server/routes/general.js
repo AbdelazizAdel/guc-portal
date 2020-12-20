@@ -216,7 +216,7 @@ router.get('/missingDays', [authentication], async(req, res) => {
         const min = new Date(year, month, day, 7).getTime(), max = new Date(year, month, day, 19).getTime();
         if(signIn.getTime() > max || signOut.getTime() < min)
             continue;
-        const index = String(new Date(start.signIn.getFullYear(), start.signIn.getMonth(), start.signIn.getDate()).getTime());
+        const index = String(new Date(year, month, day).getTime());
         days[index] = false;
     }
     const requests = await requestModel.find({sender : id, status : 'accepted'}).or([
@@ -238,7 +238,7 @@ router.get('/missingDays', [authentication], async(req, res) => {
                 return false;
             })
             if(acceptedRequests.length > 0)
-                days[date.getTime()] = false;
+                days[String(date.getTime())] = false;
         }
     }
     let result = [];
