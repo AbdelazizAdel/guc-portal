@@ -84,6 +84,9 @@ router.get('/signin', [authentication], async(req, res) => {
     res.send('sign in recorded successfully');
 })
 
+
+// route for signing out
+//TODO check if authentication is required or not
 router.get('/signout', [authentication], async(req, res) => {
     const {attendance} = req.body.member;
     const signOutDate = Date.now();
@@ -102,6 +105,22 @@ router.get('/signout', [authentication], async(req, res) => {
     }
     await memberModel.updateOne({id : req.body.member.id}, {attendance});
     res.send('signout recorded successfully');
+})
+
+// route for viewing attendance
+router.get('/attendance', [authentication], async(req, res) => {
+    const {attendance} = req.body.member;
+    const {month} = req.query;
+    if(month !== undefined) {
+        if(!(typeof(month) == 'number' && month >= 0 && month <= 11))
+            return res.send('this is not a valid month');
+        const result = attendance.filter((record) => {
+            return (record.signIn !== undefined && record.signIn.getMonth() === month) ||
+            (record.signOut !== undefined && record.signOut.getMonth() === month);
+        });
+        return res.send(result);
+    }
+    res.send(attendance);
 })
 
 module.exports = router;
