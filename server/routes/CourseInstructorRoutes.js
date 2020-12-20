@@ -80,7 +80,7 @@ catch(err){
 });
 router.get('/members/:id/coverage',async(req,res)=>{
     const memberId = req.params.id;
-    const memberCourses =await Course.find().or([{'instructors':{"$in":`${memberId}`}},{'TAs':{"$in":`${memberId}`}}]);
+    const memberCourses =await Course.find({'instructors':{"$in":`${memberId}`}});
     const response = {}; 
     for(let i=0;i<memberCourses.length;i++){
         const courseSlots = await Slot.find().and([{'instructor':{"$exists":true}},{'course':memberCourses[i].id}]);
