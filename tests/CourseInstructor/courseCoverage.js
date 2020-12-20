@@ -47,7 +47,7 @@ describe('Testing Course Coverage route',()=>{
         expect(output['SoftwareEngineering']).toBe(undefined);
     },10000),
     it('A case where the slot model will return based on Instructors',async ()=>{
-        const member = createStaffMamber('Ashry19','ashry@yahoo.com','ashduia','Mohammed Ashry','male',7000,3,'C6.305',6,[]);
+        const member = createStaffMamber('Ashry19','ashry@yahoo.com','ashduia','Mohammed Ashry','male',7000,3,'C6.305',6,[],undefined,false,[],true,'dep1');
         const course1 = createCourse('course1','Advanced Computer Lab','Mervat22',['Hany5'],['Ashry19'],6);
         const course2 = createCourse('course2','SoftwareEngineering','Ayman6',['Menrit28'],['Walid7'],10);
         const slot1 = createSlot('slot1',2,1,'C7.301','Lab','course2','Menrit28');
@@ -62,7 +62,7 @@ describe('Testing Course Coverage route',()=>{
         expect(output['SoftwareEngineering']).toBe(undefined);
     },10000),
     it('A case where the slot model will return multiple records',async ()=>{
-        const member = createStaffMamber('Ashry19','ashry@yahoo.com','ashduia','Mohammed Ashry','male',7000,3,'C6.305',6,[]);
+        const member = createStaffMamber('Ashry19','ashry@yahoo.com','ashduia','Mohammed Ashry','male',7000,3,'C6.305',6,[],undefined,false,[],true,'dep1');
         const course1 = createCourse('course1','Advanced Computer Lab','Mervat22',['Hany5'],['Ashry19'],10);
         const course2 = createCourse('course2','SoftwareEngineering','Ayman6',['Menrit28'],['Walid7'],10);
         const slot1 = createSlot('slot1',2,1,'C7.301','Lab','course2','Menrit28');
@@ -80,7 +80,7 @@ describe('Testing Course Coverage route',()=>{
         expect(output['SoftwareEngineering']).toBe(undefined);
     },10000),
     it('A case where the instructor is assigned to multiple courses',async ()=>{
-        const member = createStaffMamber('Ashry19','ashry@yahoo.com','ashduia','Mohammed Ashry','male',7000,3,'C6.305',6,[]);
+        const member = createStaffMamber('Ashry19','ashry@yahoo.com','ashduia','Mohammed Ashry','male',7000,3,'C6.305',6,[],undefined,false,[],true,'dep1');
         const course1 = createCourse('course1','Advanced Computer Lab','Mervat22',['Hany5'],['Ashry19'],10);
         const course2 = createCourse('course2','SoftwareEngineering','Ayman6',['Menrit28'],['Ashry19'],10);
         const slot1 = createSlot('slot1',2,1,'C7.301','Lab','course2','Ashry19');
