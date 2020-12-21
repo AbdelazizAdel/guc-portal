@@ -49,7 +49,7 @@ router.post('/replacement/request', [Authentication], async (req, res) => {
         let courseId = req.body.courseId;
         let sender = req.body.member.id;
         receiver = req.body.receiver;
-        if(courseId == undefined){
+        if(courseId === undefined){
             res.status(404).send('Please choose a course');
         }
         let senderCourse = await Course.find({'id': courseId})[0].TAs.filter((TA) => {
@@ -58,12 +58,12 @@ router.post('/replacement/request', [Authentication], async (req, res) => {
         if(senderCourse.length !== 2){
             return res.status(404).send('Please choose a TA from the same course');
         }
-        if(receiver == undefined || sender === receiver){
+        if(receiver === undefined || sender === receiver){
             return res.status(404).send('Please choose another TA to replace with');
         }
         const startDate = req.body.startDate;
         const slot = req.body.slot;
-        if(startDate == undefined || Date.now() > startDate){
+        if(startDate === undefined || Date.now() > startDate){
             return res.status(404).send('Please choose a valid date');
         }
         let request = new Request({
