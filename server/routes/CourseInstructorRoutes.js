@@ -20,7 +20,8 @@ router.post('/StaffMembers',(req,res)=>{
             "startDay": req.body.startDay,
             "loggedIn": req.body.loggedIn,
             "officeLoc": req.body.officeLoc,
-            "attendance": req.body.attendance
+            "attendance": req.body.attendance,
+            "department":req.body.department
           })
         console.log(typeof(member));
         member.save((err,doc)=>{
@@ -105,7 +106,83 @@ router.get('/instructors/:id/courses',async(req,res)=>{
     const response ={courses:coursesId};
     res.status(200).send(response);
 });
-router.get('/instructors/:id/courses/:courseid',async(req,res)=>{
+/**
+ * This route requires a body in the following structure
+ *  {
+ *  instrudctorId : value
+ * }
+ *  view which slot is assigned to which academic member
+ *  the output is of structure
+ *  {
+ *      slotsInformation:[{ slotday : value , slotPeriod : value , slotLocation : value , instructor : value , course : value}]
+ *  }
+ */
+router.get('/courses/:courseid/slots-assignment',async(req,res)=>{
+    const courseId = req.params.courseid;
+    const instructorId = req.body.instructorId;
+    if((await StaffMember.find({'id':instructorId})) === null ){
+        return res.status(404).send('Instructor not found');
+    }
+    const course = await Course.findOne({'id':courseId});
+
+    if(!course.instructors.includes(instructorId)){
+        return res.status(403).send('This is not an instructor to this course');
+    }
+    let response = {};
+    const courseSlots = await Slot.find({'course':courseId});
+    let allSlots =[];
+    for(let i=0;i<courseSlots.length;i++){
+        const member =courseSlots[i].instructor==null?'Not Assigned yet':(await StaffMember.findOne({'id':courseSlots[i].instructor})).name;
+        const resultstructure ={slotDay:courseSlots[i].day,slotPeriod:courseSlots[i].period,slotLocation:courseSlots[i].location,instructor:member,course:course.name};
+        allSlots.push(resultstructure);        
+    }
+    response['slotsInformation']=allSlots;
+    res.status(200).send(response);
+});
+router.get('/staff-members/:id/department',async(req,res)=>{
+    const instructorId = req.params.id;
+    const member = await StaffMember.findOne({'id':instructorId});
+    if(member == null){
+        return res.status(404).send('There doesn\'t exist an Instructor with such Id.');
+    }
+    const instructorCourses = await Course.findOne({'instructors':{"$in":`${instructorId}`}});
+    if(instructorCourses == null){
+        return res.status(403).send('The Id provided is not of an instructor, so you can\'t access this information!!');
+    }
+    let membersId = [];
+    const members = await StaffMember.find({'department':member.department});
+    for(let i=0;i<members.length;i++){
+        if (members[i].id!==instructorId){
+            membersId.push({memberId:members[i].id,memberName:members[i].name});
+        }
+    }
+    res.status(200).send({staffMembers:membersId});
+
+});
+router.get('/staff-members/:instructorId/department/:staffMemberId',async(req,res)=>{
+    const instructorId = req.params.instructorId;
+    const memberId = req.params.staffMemberId; // a member from the same department
+    const instructor = await StaffMember.findOne({'id':instructorId});
+    const staffMember =await StaffMember.findOne({'id':memberId});
+    if(instructor == null){
+        return res.status(404).send('Instructor not found!!');
+    }
+    else if(staffMember == null){
+        return res.status(404).send('The staff Member you are searching for is not found');
+    }
+    const instructorCourses = await Course.findOne({'instructors':{"$in":`${instructorId}`}});
+    if(instructorCourses == null){
+        return res.status(403).send('The Id provided is not of an instructor, so you can\'t access this information!!');
+    }
+    if(instructor.department!==staffMember.department){
+        return res.status(403).send('The Instructor and the staff member are not in the same department.')
+    }
+    res.status(200).send({memberName:staffMember.name,memberEmail:staffMember.email,memberGender:staffMember.gender,
+                         memberDayoff:staffMember.dayOff,memberOfficeLoc:staffMember.officeLoc,memberDepartment:staffMember.department});
+
+})
+
+router.get('/instructors/:id/courses/:courseid/unassigned-slots',async(req,res)=>{
     const instructorId = req.params.id;
     const courseId = req.params.courseid;
     const course = await Course.findOne({'id':`${courseId}`});
