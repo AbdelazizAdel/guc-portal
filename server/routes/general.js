@@ -92,7 +92,7 @@ router.post('/updateProfile', [authentication], async(req, res) => {
 router.get('/signin', [authentication], async(req, res) => {
     const {member} = req.body;
     const record = {
-        signIn : Date.now()
+        signIn : new Date()
     };
     if(member.attendance == undefined)
         member.attendance = [];
@@ -105,8 +105,8 @@ router.get('/signin', [authentication], async(req, res) => {
 // route for signing out
 //TODO check if authentication is required or not
 router.get('/signout', [authentication], async(req, res) => {
-    const {attendance, id} = req.body.member;
-    const signOutDate = Date.now();
+    let {attendance, id} = req.body.member;
+    const signOutDate = new Date();
     if(attendance === undefined || attendance.length === 0) 
         attendance = [{signOut : signOutDate}];
     else {
@@ -151,7 +151,7 @@ router.get('/attendance/:year/:month', [authentication], (req, res) => {
     year = Number(year);
     month = Number(month);
     let result = [];
-    const curDate = Date.now(), curYear = curDate.getFullYear(), curMonth = curDate.getMonth(), curDay = curDate.getDate();
+    const curDate = new Date(), curYear = curDate.getFullYear(), curMonth = curDate.getMonth(), curDay = curDate.getDate();
     if(year === curYear && month === curMonth) {
         if(curDay >= 11) {
             const start = new Date(year, month, 11).getTime(), end = new Date(year, month, curDay).getTime() + day_ms - 1;
@@ -182,7 +182,7 @@ router.get('/attendance/:year/:month', [authentication], (req, res) => {
 
 // function for getting attendance records based on the current day
 async function getAttendanceRecords(token) {
-    const curDate = Date.now(), curYear = curDate.getFullYear(), curMonth = curDate.getMonth(), curDay = curDate.getDate();
+    const curDate = new Date(), curYear = curDate.getFullYear(), curMonth = curDate.getMonth(), curDay = curDate.getDate();
     let year, month;
     if(curDay >= 11) {
         year = curYear;
@@ -215,7 +215,7 @@ function isValidRecord(record) {
 
 // function for determining the number of days passed in the current month (GUC month)
 function numOfDays(startYear, startMonth) {
-    const curDate = Date.now(), curDay = curDate.getDate();
+    const curDate = new Date(), curDay = curDate.getDate();
     let numDays;
     if(curDay >= 11)
         numDays = curDay - 11 + 1;
