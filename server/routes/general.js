@@ -127,7 +127,10 @@ router.get('/signout', [authentication], async(req, res) => {
 
 // route for viewing all attendance records
 router.get('/attendance', [authentication], (req, res) => {
-    res.send(req.body.member.attendance);
+    let {attendance} = req.body.member;
+    if(attendance === undefined)
+        attendance = [];
+    res.send(attendance);
 })
 
 // function which checks for valid year
@@ -137,13 +140,13 @@ function isYearValid(year) {
 
 // function which checks for valid month
 function isMonthValid(month) {
-    return /^(0[0-9]|1[0-1])$/.test(day);
+    return /^(0[0-9]|1[0-1])$/.test(month);
 }
 
 // route for viewing attendance of a specific month
 router.get('/attendance/:year/:month', [authentication], (req, res) => {
     const {attendance} = req.body.member;
-    const {year, month} = req.params;
+    let {year, month} = req.params;
     if(!isYearValid(year))
         return res.send('this is not a valid year');
     if(!isMonthValid(month))
