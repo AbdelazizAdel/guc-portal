@@ -180,13 +180,83 @@ router.get('/staff-members/:instructorId/department/:staffMemberId',async(req,re
     res.status(200).send({memberName:staffMember.name,memberEmail:staffMember.email,memberGender:staffMember.gender,
                          memberDayoff:staffMember.dayOff,memberOfficeLoc:staffMember.officeLoc,memberDepartment:staffMember.department});
 
-})
+});
+router.get('/staff-members/:id/courses',async(req,res)=>{
+    const instructorId = req.params.id;
+    const member = await StaffMember.findOne({'id':instructorId});
+    if(member == null){
+        return res.status(404).send('There doesn\'t exist an Instructor with such Id.');
+    }
+    const instructorCourses = await Course.find({'instructors':{"$in":`${instructorId}`}});
+    if(instructorCourses == null){
+        return res.status(403).send('The Id provided is not of an instructor, so you can\'t access this information!!');
+    }
+    const response = {};
+    let queries = [];
+    for(let i = 0 ;i < instructorCourses.length;i++){
+       const TAs = [];
+       for(let j=0;j<instructorCourses[i].TAs.length;j++){
+           TAs.push({'id':`${instructorCourses[i].TAs[j]}`});
+       }
+       const query1 = StaffMember.find().or(TAs);
+       const instructors = [];
+       for(let j=0;j<instructorCourses[i].instructors.length;j++){
+           instructors.push({'id':`${instructorCourses[i].instructors[j]}`});
+       }
+       const query2 = StaffMember.find().or(instructors);
+       queries.push(query1);
+       queries.push(query2);
+    }
+    Promise.allSettled(queries).then((result)=>{
+        let output = [];
+        console.log(result);
+        let TAsAssigned = [];
+        for(let i = 0; i <result.length;i++){
+            if(result[i].status ==='fulfilled'){
+         const desiredOutput = result[i].value.map((elem)=>{
+             return {id:elem.id,name:elem.name};
+         });
+         TAsAssigned.push(true);
+         output.push(desiredOutput);
+        }
+        else{
+            TAsAssigned.push(false);
+            output.push([{id:'Not assigned yet',name:'Not assigned yet'}]);
+        }
+        }
+         for(let i = 0, j = 0;i<instructorCourses.length;i++,j+=2){
+            response[`${instructorCourses[i].name}`] = {TAsAssigned:TAsAssigned[i],TAs:output[j],instructors:output[j+1]};
+         
+        }
+        res.status(200).send(response);
+    })
+
+});
+router.get('/staff-members/:instructorId/courses/:staffMemberId',async(req,res)=>{
+    const instructorId = req.params.instructorId;
+    const memberId = req.params.staffMemberId; // a member from the same course
+    const instructor = await StaffMember.findOne({'id':instructorId});
+    const staffMember =await StaffMember.findOne({'id':memberId});
+    if(instructor == null){
+        return res.status(404).send('Instructor not found!!');
+    }
+    else if(staffMember == null){
+        return res.status(404).send('The staff Member you are searching for is not found');
+    }
+    const instructorCourses = await Course.findOne({'instructors':{"$in":`${instructorId}`}}).or([{'instructors':{"$in":`${memberId}`}},{'TAs':{"$in":`${memberId}`}}]);
+    if(instructorCourses == null){
+        return res.status(403).send('You are not allowed to view this information!!');
+    }
+    res.status(200).send({memberName:staffMember.name,memberEmail:staffMember.email,memberGender:staffMember.gender,
+                         memberDayoff:staffMember.dayOff,memberOfficeLoc:staffMember.officeLoc,memberDepartment:staffMember.department});
+
+});
+
 
 router.get('/instructors/:id/courses/:courseid/unassigned-slots',async(req,res)=>{
     const instructorId = req.params.id;
     const courseId = req.params.courseid;
     const course = await Course.findOne({'id':`${courseId}`});
-    console.log(course.instructors);
     if(!course.instructors.includes(instructorId)){
         return res.status(403).send('You are not allowed to view these course Information');
     }
