@@ -12,7 +12,7 @@ const createSlot =  require('./helper.js').createSlot;
 const createStaffMamber = require('./helper.js').createStaffMember;
 beforeAll(()=>{
 try {
-    (async () => {await mongoose.connect(process.env.DB_URL, {
+    (async () => {await mongoose.connect(process.env.DB_URL_TEST, {
         useNewUrlParser: true,
         useUnifiedTopology: true
     })})();
