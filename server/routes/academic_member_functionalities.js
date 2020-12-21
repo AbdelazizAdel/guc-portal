@@ -13,7 +13,7 @@ const MetaData = require('../models/metaData.js');
 
 router.use(express.json());
 
-router.get('/schedule', [Authentication],(req, res)=>{
+router.get('/schedule', [Authentication], async (req, res)=>{
 
     try{
 
@@ -21,9 +21,18 @@ router.get('/schedule', [Authentication],(req, res)=>{
 
         let schedule = [];
 
-        let scheule = Slot.find.and([{'instructor':{"$in":`${staffId}`}}]);
+        let scheule = await Slot.find({'instructor':`${staffId}`});
 
-        let replacements = Replacement.filter.and([{'instructor':{"$in":`${staffId}`}}])
+        let replacements = await Replacement.find({'instructor' : `${staffId}`});
+        replacements = replacements.filter((replacement) => {
+            let dateToUse = Date.now();
+            let lastSaturday = new Date().setDate(dateToUse.getDate() - (dateToUse.getDay() + 1));
+            let nextFriday = new Date().setDate(lastSaturday.getDate() + 6);
+            return replacement.date >= lastSaturday && replacement.date <= nextFriday;
+        });
+        let date = new Date().now();
+        date.getMonth();
+        
         scheule = schedule.concat(replacements);
         response = {'schedule' : schedule};
         res.status(200).send(response);
@@ -34,21 +43,41 @@ router.get('/schedule', [Authentication],(req, res)=>{
     }
 });
 
-router.post('/replacement/request', [Authentication], (req, res) => {
+router.post('/replacement/request', [Authentication], async (req, res) => {
     try{
-        requestId = MetaData.find().and([{'sequenceName':{"$in":`replacementSlot`}}])['lastId'];
-        const request = new Request({
+        let requestId = await MetaData.find().and([{'sequenceName':{"$in":`replacementSlot`}}]).lastId;
+        let courseId = req.body.courseId;
+        let sender = req.body.member.id;
+        receiver = req.body.receiver;
+        if(courseId == undefined){
+            res.status(404).send('Please choose a course');
+        }
+        let senderCourse = await Course.find({'id': courseId})[0].TAs.filter((TA) => {
+            return TA === sender || TA === receiver;
+        });
+        if(senderCourse.length !== 2){
+            return res.status(404).send('Please choose a TA from the same course');
+        }
+        if(receiver == undefined || sender === receiver){
+            return res.status(404).send('Please choose another TA to replace with');
+        }
+        const startDate = req.body.startDate;
+        const slot = req.body.slot;
+        if(startDate == undefined || Date.now() > startDate){
+            return res.status(404).send('Please choose a valid date');
+        }
+        let request = new Request({
             id: requestId,
             sender: req.body.member.id,
-            receiver: req.body.receiver,
+            receiver: receiver,
             status: 'Pending',
             content: req.body.content,
             comment: req.body.comment,
-            type: 'replacementSlot',
+            type: 'ReplacementSlot',
             submissionDate: Date.now(),
-            startDate: req.body.startDate,
+            startDate: startDate,
             duration: req.body.duration,
-            slot: req.body.slot,
+            slot: slot,
             attachmentURL : req.body.attachmentURL
         });
         console.log(typeof(replacementSlot));
@@ -62,4 +91,4 @@ router.post('/replacement/request', [Authentication], (req, res) => {
         console.log(err);
         res.status(404).send('fih moshkla ya mealem');
     }
-})
+});
