@@ -300,6 +300,7 @@ router.get('/missingDays', [authentication], async(req, res) => {
 //route for getting missing hours or extra hours
 //TODO: check for compensation leaves and dayoffs
 router.get('/missingHours', [authentication], async(req, res) => {
+    const {dayOff, id} = req.body.member;
     const {records, startYear, startMonth} = await getAttendanceRecords(req.headers.auth_token);
     const numDays = numOfDays(startYear, startMonth);
     const firstDay = new Date(startYear, startMonth, 11).getTime();
@@ -316,8 +317,22 @@ router.get('/missingHours', [authentication], async(req, res) => {
         const spentTime = (signOutTime - signInTime) / (1000 * 60 * 60);
         result-= spentTime;
     }
+    const compensationLeaves = await requestModel.find({
+        sender : id,
+        status : 'accepted',
+        type : 'compensation',
+        startDate : {$gte : new Date(firstDay), $lt : new Date(firstDay + numDays * day_ms)},
+        dayOff :  {$gte : new Date(firstDay), $lt : new Date(firstDay + numDays * day_ms)}
+    });
+    let compensatedDayOffs = {};
+    for(let i = 0; i < compensationLeaves.length; i++) {
+        const d = compensationLeaves[i].dayOff;
+        compensatedDayOffs[String(new Date(d.getFullYear(), d.getMonth(), d,getDate()).getTime())] = true;
+    }
     for(let i = 0; i < numDays; i++) {
-        if(!days[String(firstDay + i * day_ms)])
+        const d = new Date(firstDay + i * day_ms);
+        if((d.getDay() == dayOff && compensatedDayOffs[String(d.getTime())] == true && !days[String(d.getTime())]) ||
+         (d.getDay() != dayOff && d.getDay() != 5 && !days[String(d.getTime())]))
             cnt++;
     }
     result = result + cnt * 8.24;

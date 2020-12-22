@@ -59,7 +59,7 @@ describe("testing missing days route", () => {
         const response = await request.post('/login').send({email : member.email, password : plainTextPassword});
         const token = response.headers.auth_token;
         const res = await request.get('/missingDays').set('auth_token', token);
-        expect(res.body).toHaveLength(8);
+        expect(res.body).toHaveLength(9);
     }, 15000)
 
     test("testing leave requests case", async() => {
@@ -70,6 +70,6 @@ describe("testing missing days route", () => {
         const response = await request.post('/login').send({email : member.email, password : plainTextPassword});
         const token = response.headers.auth_token;
         const res = await request.get('/missingDays').set('auth_token', token);
-        expect(res.body).toHaveLength(5);
+        expect(res.body).toHaveLength(6);
     }, 15000)
 })
