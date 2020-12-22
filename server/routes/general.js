@@ -1,9 +1,12 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const express = require('express');
-const router = express.Router();
 const memberModel = require('../models/StaffMember');
+const requestModel = require('../models/Request');
 const {authentication} = require('./middleware');
+const superagent = require('superagent');
+const router = express.Router();
+const day_ms = 86400000; // number of milliseconds in a day
 
 //route for logging in
 router.post('/login', async(req, res) => {
@@ -12,6 +15,8 @@ router.post('/login', async(req, res) => {
         return res.send("please enter an email");
     if(password == undefined)
         return res.send('please enter a password');
+    if(typeof(email) != 'string' || typeof(password) != 'string')
+        return res.send('please enter valid data types');
     const member = await memberModel.findOne({email});
     if(member == null)
         return res.send("There is no user with such email");
@@ -20,7 +25,11 @@ router.post('/login', async(req, res) => {
         return res.send('wrong password');
     await memberModel.updateOne({email}, {loggedIn : true});
     const token = jwt.sign({id : member.id}, process.env.TOKEN_SECRET);
-    res.header('auth_token', token).send(token);
+    if(member.firstLogin == undefined || member.firstLogin == true) {
+        await memberModel.updateOne({email}, {firstLogin : false});
+        return res.header('auth_token', token).send('please change your password');
+    }
+    res.header('auth_token', token).send("logged in successfully");
 });
 
 //route for logging out
@@ -41,6 +50,8 @@ router.post('/changePassword', [authentication], async(req, res) => {
         return res.send('old password is required');
     if(newPass == undefined)
         return res.send('new Password is required');
+    if(typeof(oldPass) != 'string' || typeof(newPass) != 'string')
+        return res.send('please enter valid data types');
     const isCorrect = await bcrypt.compare(oldPass, member.password);
     if(!isCorrect)
         return res.send('old password is incorrect');
@@ -58,14 +69,20 @@ function emailIsValid (email) {
 // route for updating profile
 router.post('/updateProfile', [authentication], async(req, res) => {
     const {gender, email, member} = req.body;
-    if(gender !== undefined && gender !== 'male' && gender !== 'female')
-        return res.send('this is not a valid gender');
-    if(email != undefined && !emailIsValid(email))
-        return res.send('this is not a valid email');
-    if(email != undefined)
-        member.email = email;
-    if(gender != undefined)
+    if(gender !== undefined) {
+        if(gender !== 'male' && gender !== 'female')
+            return res.send('this is not a valid gender');
+        if(typeof(gender) != 'string')
+            return res.send('please enter valid data types');
         member.gender = gender;
+    }
+    if(email !== undefined) {
+        if(!emailIsValid(email))
+            return res.send('this is not a valid email');
+        if(typeof(email) !== 'string')
+            return res.send('please enter valid data types');
+        member.email = email;
+    }
     await memberModel.updateOne({id : member.id}, member);
     res.send('profile updated successfully');
 })
@@ -75,13 +92,212 @@ router.post('/updateProfile', [authentication], async(req, res) => {
 router.get('/signin', [authentication], async(req, res) => {
     const {member} = req.body;
     const record = {
-        signIn : Date.now
+        signIn : Date.now()
     };
     if(member.attendance == undefined)
         member.attendance = [];
-    member.attendance.concat([record]);
+    member.attendance[member.attendance.length] = record;
     await memberModel.updateOne({id : member.id}, member);
-    res.send('sign in recorded');
+    res.send('sign in recorded successfully');
+})
+
+
+// route for signing out
+//TODO check if authentication is required or not
+router.get('/signout', [authentication], async(req, res) => {
+    const {attendance, id} = req.body.member;
+    const signOutDate = Date.now();
+    if(attendance === undefined || attendance.length === 0) 
+        attendance = [{signOut : signOutDate}];
+    else {
+        const last = attendance[attendance.length - 1];
+        if(last.signOut !== undefined)
+            attendance[attendance.length] = {signOut : signOutDate};
+        else {
+            if(last.signIn.getFullYear() == signOutDate.getFullYear() && last.signIn.getMonth() == signOutDate.getMonth()
+            && last.signIn.getDate() == signOutDate.getDate())
+                attendance[attendance.length - 1].signOut = signOutDate;
+            else
+                attendance[attendance.length] = {signOut : signOutDate};
+        }
+    }
+    await memberModel.updateOne({id}, {attendance});
+    res.send('signout recorded successfully');
+})
+
+// route for viewing all attendance records
+router.get('/attendance', [authentication], (req, res) => {
+    res.send(req.body.member.attendance);
+})
+
+// function which checks for valid year
+function isYearValid(year) {
+    return /^\d{4}$/.test(year);
+}
+
+// function which checks for valid month
+function isMonthValid(month) {
+    return /^(0[0-9]|1[0-1])$/.test(day);
+}
+
+// route for viewing attendance of a specific month
+router.get('/attendance/:year/:month', [authentication], (req, res) => {
+    const {attendance} = req.body.member;
+    const {year, month} = req.params;
+    if(!isYearValid(year))
+        return res.send('this is not a valid year');
+    if(!isMonthValid(month))
+        return res.send('this is not a valid month');
+    year = Number(year);
+    month = Number(month);
+    let result = [];
+    const curDate = Date.now(), curYear = curDate.getFullYear(), curMonth = curDate.getMonth(), curDay = curDate.getDate();
+    if(year === curYear && month === curMonth) {
+        if(curDay >= 11) {
+            const start = new Date(year, month, 11).getTime(), end = new Date(year, month, curDay).getTime() + day_ms - 1;
+            result = attendance.filter((elem) => {
+                const signIntime = elem.signIn === undefined ? -1 : elem.signIn.getTime();
+                const signOutTime = elem.signOut === undefined ? -1 : elem.signOut.getTime();
+                return (signIntime >= start && signIntime <= end) || (signOutTime >= start && signOutTime <= end); 
+            });
+        }
+    }
+    else if(year <= curYear && month <= curMonth) {
+        const nextYear = month == 11 ? year + 1 : year;
+        const nextMonth = month == 11 ? 0 : month + 1;
+        const tenthDayNextMonth = new Date(nextYear, nextMonth, 10);
+        let start = new Date(year, month, 11).getTime(), end;
+        if(curDate.getTime() >= tenthDayNextMonth.getTime())
+            end = tenthDayNextMonth.getTime() + day_ms - 1;
+        else
+            end = new Date(curYear, curMonth, curDay).getTime() + day_ms - 1;
+        result = attendance.filter((elem) => {
+            const signIntime = elem.signIn === undefined ? -1 : elem.signIn.getTime();
+            const signOutTime = elem.signOut === undefined ? -1 : elem.signOut.getTime();
+            return (signIntime >= start && signIntime <= end) || (signOutTime >= start && signOutTime <= end); 
+        });
+    }
+    res.send(result);
+})
+
+// function for getting attendance records based on the current day
+async function getAttendanceRecords(token) {
+    const curDate = Date.now(), curYear = curDate.getFullYear(), curMonth = curDate.getMonth(), curDay = curDate.getDate();
+    let year, month;
+    if(curDay >= 11) {
+        year = curYear;
+        month = curMonth;
+    }
+    else {
+        year = curMonth == 0 ? curYear - 1 : curYear;
+        month = curMonth == 0 ? 11 : curMonth - 1;
+    }
+    const records = await superagent.get(`httP://localhost:3000/${year}/${month}`).set('auth_token', token);
+    return {
+        records,
+        startYear : year,
+        startMonth : month
+    };
+}
+
+// function for determining if the attendance record is valid or not
+function isValidRecord(record) {
+    let ans = true;
+    const{signIn, signOut} = record;
+    if(signIn == undefined || signOut == undefined)
+        ans = false;
+    const year = signIn.getFullYear(), month = signIn.getMonth(), day = signIn.getDate();
+    const min = new Date(year, month, day, 7).getTime(), max = new Date(year, month, day, 19).getTime();
+    if(signIn.getTime() > max || signOut.getTime() < min)
+        ans = false;
+    return ans;
+}
+
+// function for determining the number of days passed in the current month (GUC month)
+function numOfDays(startYear, startMonth) {
+    const curDate = Date.now(), curDay = curDate.getDate();
+    let numDays;
+    if(curDay >= 11)
+        numDays = curDay - 11 + 1;
+    else {
+        const numDaysStartMonth = new Date(startYear, startMonth, 0).getDate();
+        numDays = curDay + numDaysStartMonth - 11 + 1;
+    }
+    return numDays;
+}
+
+// function which creates an object of days given first day and the number of days
+function createDays(firstDay, numDays) {
+    let days = {};
+    for(let i = 0; i < numDays; i++)
+        days[String(firstDay + i * day_ms)] = true;
+    return days;
+}
+
+// route for getting missing days
+router.get('/missingDays', [authentication], async(req, res) => {
+    const {dayoff, id} = req.body.member;
+    const {records, startYear, startMonth} = await getAttendanceRecords(req.headers.auth_token);
+    const numDays = numOfDays(startYear, startMonth);
+    const firstDay = new Date(startYear, startMonth, 11).getTime();
+    const days = createDays(firstDay, numDays);
+    for(let i = 0; i < records.length; i++) {
+        if(!isValidRecord(records[i]))
+            continue;
+        const year = records[i].signIn.getFullYear(), month = records[i].signIn.getMonth(), day = records[i].signIn.getDate();
+        days[String(new Date(year, month, day).getTime())] = false;
+    }
+    const requests = await requestModel.find({sender : id, status : 'accepted'}).or([
+        {type : 'annual'}, {type : 'accidental'}, {type : 'sick'}, {type : 'maternity'}
+    ]);
+    for(let i = 0; i < numDays; i++) {
+        let date = new Date(firstDay + i * day_ms);
+        if(date.getDay() == 5 || date.getDay() == dayoff)
+            days[String(date.getTime())] = false;
+        else {
+            let acceptedRequests = requests.filter((elem) => {
+                let low = elem.startDate.getTime();
+                let offset = elem.duration == undefined ? 1 : elem.duration;
+                let high = low + offset * day_ms;
+                return date.getTime() >= low && date.getTime() < high;
+            })
+            if(acceptedRequests.length > 0)
+                days[String(date.getTime())] = false;
+        }
+    }
+    let result = [];
+    for(let i = 0 ; i < numDays; i++) {
+        let date = new Date(firstDay + i * day_ms);
+        if(days[String(date.getTime())] == true)
+            result[result.length] = date;
+    }
+    res.send(result);
+})
+
+//route for getting missing hours or extra hours
+router.get('/missingHours', [authentication], async(req, res) => {
+    const {records, startYear, startMonth} = await getAttendanceRecords(req.headers.auth_token);
+    const numDays = numOfDays(startYear, startMonth);
+    const firstDay = new Date(startYear, startMonth, 11).getTime();
+    const days = createDays(firstDay, numDays);
+    let result = 0, cnt = 0;
+    for(let i = 0; i < records.length; i++) {
+        if(!isValidRecord(records[i]))
+            continue;
+        const{signIn, signOut} = records[i];
+        const year = signIn.getFullYear(), month = signIn.getMonth(), day = signIn.getDate();
+        days[String(new Date(year, month, day).getTime())] = false;
+        const signInTime = Math.max(start.getTime(), signIn.getTime());
+        const signOutTime = Math.min(end.getTime(), signOut.getTime());
+        const spentTime = (signOutTime - signInTime) / (1000 * 60 * 60);
+        result-= spentTime;
+    }
+    for(let i = 0; i < numDays; i++) {
+        if(!days[String(firstDay + i * day_ms)])
+            cnt++;
+    }
+    result = result + cnt * 8.24;
+    res.send(result);
 })
 
 module.exports = router;
