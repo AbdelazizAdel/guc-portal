@@ -12,7 +12,7 @@ const createSlot =  require('./helper.js').createSlot;
 const createStaffMamber = require('./helper.js').createStaffMember;
 beforeAll(()=>{
 try {
-    (async () => {await mongoose.connect(process.env.DB_URL, {
+    (async () => {await mongoose.connect(process.env.DB_URL_TEST, {
         useNewUrlParser: true,
         useUnifiedTopology: true
     })})();
@@ -39,10 +39,7 @@ describe('Testing Course Coverage route',()=>{
         await course2.save();
         await slot1.save();
         await slot2.save();
-        
-
-        const output =  await(await request.get('/members/Ashry19/coverage')).body;
-        //console.log(output);
+        const output =  await(await request.get('/instructors/Ashry19/coverage')).body;
         expect(output['Advanced Computer Lab']).toBe(0);
         expect(output['SoftwareEngineering']).toBe(undefined);
     },10000),
@@ -57,7 +54,7 @@ describe('Testing Course Coverage route',()=>{
         await course2.save();
         await slot1.save();
         await slot2.save();
-        const output = await (await request.get('/members/Ashry19/coverage')).body;
+        const output = await (await request.get('/instructors/Ashry19/coverage')).body;
         expect(output['Advanced Computer Lab']).toBe(100.0/6);
         expect(output['SoftwareEngineering']).toBe(undefined);
     },10000),
@@ -75,7 +72,7 @@ describe('Testing Course Coverage route',()=>{
         await slot1.save();
         await slot2.save();
         await slot3.save();
-        const output = await (await request.get('/members/Ashry19/coverage')).body;
+        const output = await (await request.get('/instructors/Ashry19/coverage')).body;
         expect(output['Advanced Computer Lab']).toBe(2*100.0/10);
         expect(output['SoftwareEngineering']).toBe(undefined);
     },10000),
@@ -93,7 +90,7 @@ describe('Testing Course Coverage route',()=>{
         await slot1.save();
         await slot2.save();
         await slot3.save();
-        const output = await (await request.get('/members/Ashry19/coverage')).body;
+        const output = await (await request.get('/instructors/Ashry19/coverage')).body;
         expect(output['Advanced Computer Lab']).toBe(2*100.0/10);
         expect(output['SoftwareEngineering']).toBe(100.0/10);
     },10000)

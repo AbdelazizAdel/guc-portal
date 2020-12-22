@@ -12,7 +12,7 @@ const createSlot =  require('./helper.js').createSlot;
 const createStaffMamber = require('./helper.js').createStaffMember;
 beforeAll(()=>{
 try {
-    (async () => {await mongoose.connect(process.env.DB_URL, {
+    (async () => {await mongoose.connect(process.env.DB_URL_TEST, {
         useNewUrlParser: true,
         useUnifiedTopology: true
     })})();
@@ -58,7 +58,7 @@ describe('Testing Assigning Slots route',()=>{
         await course1.save();
         await slot1.save();
         const output =  await(await request.patch('/academic-members/Nermeen2/slots/slot1').send({instructorId:"Ashry19"  ,courseId:"course1"})).text;
-        expect(output).toBe('This teaching assistant can\'t be assigned to this course');
+        expect(output).toBe('This academic member can\'t be assigned to this course');
     },10000),
     it('A case where the academic member is assigned to the slot',async ()=>{
         const member = createStaffMamber('Nermeen2','ashry@yahoo.com','ashduia','Nermeen Ashry','male',7000,3,'C6.305',6,[],undefined,false,[],true,'dep1');
