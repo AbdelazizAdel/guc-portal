@@ -81,12 +81,15 @@ catch(err){
 });
 router.get('/instructors/:instructorId/coverage',async(req,res)=>{
     const instructorId = req.params.instructorId;
-    const memberCourses =await Course.find({'instructors':{"$in":`${instructorId}`}});
+    const instructorCourses =await Course.find({'instructors':{"$in":`${instructorId}`}});
+    if(instructorCourses.length === 0){
+        return res.status(403).send('You are not allowed to access this information');
+    }
     const response = {}; 
-    for(let i=0;i<memberCourses.length;i++){
-        const courseSlots = await Slot.find().and([{'instructor':{"$exists":true}},{'course':memberCourses[i].id}]);
+    for(let i=0;i<instructorCourses.length;i++){
+        const courseSlots = await Slot.find().and([{'instructor':{"$exists":true}},{'course':instructorCourses[i].id}]);
         const count = courseSlots.length;
-        response[`${memberCourses[i].name}`] = 100.0*count/memberCourses[i].numSlots;
+        response[`${instructorCourses[i].name}`] = 100.0*count/instructorCourses[i].numSlots;
     }
     res.status(200).send(response);
 
