@@ -146,6 +146,8 @@ function isMonthValid(month) {
 // route for viewing attendance of a specific month
 router.get('/attendance/:year/:month', [authentication], (req, res) => {
     const {attendance} = req.body.member;
+    if(attendance == undefined)
+        return res.send([]);
     let {year, month} = req.params;
     if(!isYearValid(year))
         return res.send('this is not a valid year');
@@ -195,7 +197,14 @@ async function getAttendanceRecords(token) {
         year = curMonth == 0 ? curYear - 1 : curYear;
         month = curMonth == 0 ? 11 : curMonth - 1;
     }
-    const records = await superagent.get(`httP://localhost:3000/${year}/${month}`).set('auth_token', token);
+    const response = await superagent.get(`http://localhost:3000/attendance/${year}/${month}`).set('auth_token', token);
+    const records = response.body.map((elem) => {
+        if(elem.signIn != undefined)
+            elem.signIn = new Date(elem.signIn);
+        if(elem.signOut != undefined)
+            elem.signOut = new Date(elem.signOut);
+        return elem;
+    })
     return {
         records,
         startYear : year,
@@ -205,15 +214,14 @@ async function getAttendanceRecords(token) {
 
 // function for determining if the attendance record is valid or not
 function isValidRecord(record) {
-    let ans = true;
     const{signIn, signOut} = record;
     if(signIn == undefined || signOut == undefined)
-        ans = false;
+        return false;
     const year = signIn.getFullYear(), month = signIn.getMonth(), day = signIn.getDate();
     const min = new Date(year, month, day, 7).getTime(), max = new Date(year, month, day, 19).getTime();
     if(signIn.getTime() > max || signOut.getTime() < min)
-        ans = false;
-    return ans;
+        return false;
+    return true;
 }
 
 // function for determining the number of days passed in the current month (GUC month)
@@ -239,23 +247,25 @@ function createDays(firstDay, numDays) {
 
 // route for getting missing days
 router.get('/missingDays', [authentication], async(req, res) => {
-    const {dayoff, id} = req.body.member;
+    const {dayOff, id} = req.body.member;
     const {records, startYear, startMonth} = await getAttendanceRecords(req.headers.auth_token);
     const numDays = numOfDays(startYear, startMonth);
     const firstDay = new Date(startYear, startMonth, 11).getTime();
-    const days = createDays(firstDay, numDays);
+    let days = createDays(firstDay, numDays);
     for(let i = 0; i < records.length; i++) {
         if(!isValidRecord(records[i]))
             continue;
         const year = records[i].signIn.getFullYear(), month = records[i].signIn.getMonth(), day = records[i].signIn.getDate();
         days[String(new Date(year, month, day).getTime())] = false;
     }
+
     const requests = await requestModel.find({sender : id, status : 'accepted'}).or([
         {type : 'annual'}, {type : 'accidental'}, {type : 'sick'}, {type : 'maternity'}
     ]);
+    const compensationLeaves = await requestModel.find({sender : id, status : 'accepted', type : 'compensation'})
     for(let i = 0; i < numDays; i++) {
         let date = new Date(firstDay + i * day_ms);
-        if(date.getDay() == 5 || date.getDay() == dayoff)
+        if(date.getDay() == 5 || date.getDay() == dayOff)
             days[String(date.getTime())] = false;
         else {
             let acceptedRequests = requests.filter((elem) => {
@@ -268,6 +278,7 @@ router.get('/missingDays', [authentication], async(req, res) => {
                 days[String(date.getTime())] = false;
         }
     }
+
     let result = [];
     for(let i = 0 ; i < numDays; i++) {
         let date = new Date(firstDay + i * day_ms);
@@ -278,6 +289,7 @@ router.get('/missingDays', [authentication], async(req, res) => {
 })
 
 //route for getting missing hours or extra hours
+//TODO: check for compensation leaves and dayoffs
 router.get('/missingHours', [authentication], async(req, res) => {
     const {records, startYear, startMonth} = await getAttendanceRecords(req.headers.auth_token);
     const numDays = numOfDays(startYear, startMonth);

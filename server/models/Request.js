@@ -11,6 +11,7 @@ const RequestScheme = new mongoose.Schema({
     type: String,
     submissionDate: Date,
     startDate: Date,
+    dayOff : Date,
     duration: Number,
     slot: Number,
     attachmentURL : String

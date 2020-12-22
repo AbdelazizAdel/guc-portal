@@ -70,5 +70,5 @@ describe("testing view attendance routes", () => {
         const year = new Date().getFullYear()
         const res = await request.get(`/attendance/${year}/01`).set('auth_token', token);
         expect(res.body).toHaveLength(2);
-    })
+    }, 15000)
 })
