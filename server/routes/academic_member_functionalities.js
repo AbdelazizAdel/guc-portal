@@ -25,12 +25,12 @@ router.get('/schedule', [Authentication], async (req, res)=>{
 
         let replacements = await Replacement.find({'instructor' : `${staffId}`});
         replacements = replacements.filter((replacement) => {
-            let dateToUse = Date.now();
-            let lastSaturday = new Date().setDate(dateToUse.getDate() - (dateToUse.getDay() + 1));
+            let dateToUse = Date();
+            let lastSaturday = new Date().setDate(dateToUse.getDate() - ((dateToUse.getDay() + 1) % 7));
             let nextFriday = new Date().setDate(lastSaturday.getDate() + 6);
             return replacement.date >= lastSaturday && replacement.date <= nextFriday;
         });
-        let date = new Date().now();
+        let date = new Date();
         date.getMonth();
         
         scheule = schedule.concat(replacements);
@@ -63,7 +63,7 @@ router.post('/replacement/request', [Authentication], async (req, res) => {
         }
         const startDate = req.body.startDate;
         const slot = req.body.slot;
-        if(startDate === undefined || Date.now() > startDate){
+        if(startDate === undefined || Date() > startDate){
             return res.status(404).send('Please choose a valid date');
         }
         let request = new Request({
@@ -74,7 +74,7 @@ router.post('/replacement/request', [Authentication], async (req, res) => {
             content: req.body.content,
             comment: req.body.comment,
             type: 'ReplacementSlot',
-            submissionDate: Date.now(),
+            submissionDate: Date(),
             startDate: startDate,
             duration: req.body.duration,
             slot: slot,
