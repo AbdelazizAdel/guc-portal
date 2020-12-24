@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const Slot = require("./Slot.js");
 
 const RequestScheme = new mongoose.Schema({
+    id: String,
     sender: String,
     receiver: String,
     status: String,
