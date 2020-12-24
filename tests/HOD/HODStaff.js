@@ -8,7 +8,7 @@ const memberModel = require('../../server/models/StaffMember.js');
 const CourseModel = require('../../server/models/Course.js');
 const departmentModel = require('../../server/models/Department.js');
 const bcrypt = require('bcrypt');
-const {createMember} = require('./helper');
+const {createMember} = require('../general/helper');
 
 try {
     (async () => {await mongoose.connect(process.env.DB_URL_TEST, {

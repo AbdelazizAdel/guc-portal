@@ -8,7 +8,7 @@ const memberModel = require('../../server/models/StaffMember.js');
 const CourseModel = require('../../server/models/Course.js');
 const departmentModel = require('../../server/models/Department.js');
 const bcrypt = require('bcrypt');
-const {createMember} = require('./helper');
+const {createMember} = require('../general/helper');
 
 
 try {
@@ -72,21 +72,3 @@ async function createStaffMembers(){
     }
     return staff;
 }
-
-
-describe('view day off', ()=>{
-    test('view day off of a single staff in the department', async()=>{
-        const res = await request.get('/viewDayOff').send({staffId: 'ac-2'}).set('auth_token', token);
-        console.log(res.body)
-        expect(200);
-        expect(res.body.dayOff).toBe(2);
-    })
-
-    test('view day off of all the staff in the department', async()=>{
-        const res = await request.get('/viewDayOff').send().set('auth_token', token);
-        expect(200);
-        for(let i=0;i<staff.length;i++){
-            expect(res.body[i].dayOff).toBe(staff[i].dayOff);
-        }
-    })
-})
