@@ -298,7 +298,6 @@ router.get('/missingDays', [authentication], async(req, res) => {
 })
 
 //route for getting missing hours or extra hours
-//TODO: check for compensation leaves and dayoffs
 router.get('/missingHours', [authentication], async(req, res) => {
     const {dayOff, id} = req.body.member;
     const {records, startYear, startMonth} = await getAttendanceRecords(req.headers.auth_token);
