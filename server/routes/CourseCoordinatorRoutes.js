@@ -72,6 +72,7 @@ router.get('/coordinator/:coordinatorId/courses/:courseId/slot-linking-requests'
         console.log(result.length);
         for(let i = 0,j = 0;i < result.length;i+=2,j++){
             let slotRequest ={};
+            slotRequest.requestId = requests[j].id;
             slotRequest.memberId = result[i].value.id;
             slotRequest.memberName = result[i].value.name;
             slotRequest.slotId = result[i+1].value.id;
@@ -90,4 +91,44 @@ router.get('/coordinator/:coordinatorId/courses/:courseId/slot-linking-requests'
 
 });
 
+router.patch('/coordinator/:coordinatorId/courses/:courseId',async (req,res)=>{
+    const coordinatorId = req.params.coordinatorId;
+    const courseId = req.params.courseId;
+    const requestId = req.body.requestId;
+    const requestResponse = req.body.requestResponse;
+    const coordinator = await StaffMember.findOne({'id':`${coordinatorId}`});
+    if(coordinator == null){
+        return res.status(404).send('Member not found!!');
+    }
+    const course = await Course.findOne({'id':`${courseId}`});
+    if(course == null){
+        return res.status(404).send('Course not found!!');
+    }
+    if(course.coordinator != coordinatorId){
+        return res.status(401).send('You don\'t have access to view or modify this information!!');
+    }
+    const request = await Request.findOne({'id':`${requestId}`});
+    
+    if(request == null){
+        return res.status(404).send('Request not found!!');
+    }
+    if(request.status !== 'pending'){
+        return res.status(400).send('You can\'t modify this request!!');
+    }
+    const slot = await Slot.findOne({'id':`${request.slot}`});
+    if(slot.course != courseId){
+        return res.status(400).send('Bad request! the slot provided in the request doesn\'t match the course ');
+    }
+    if(requestResponse == 'accepted'){
+        const query1 = Request.updateOne({'id':`${requestId}`},{'status':'accepted'});
+        const query2 = Slot.updateOne({'id':`${request.slot}`},{'instructor': `${request.sender}`});
+        Promise.allSettled([query1,query2]).then((result)=>{
+            return res.status(200).send('Request has been successfully accepted!!');
+        })
+    }
+    else{
+        await  Request.updateOne({'id':'accepted'},{'status':'rejected'});
+        return res.status(200).send('Request has been successfully rejected!!');
+    }
+})
 module.exports = router;
