@@ -23,6 +23,8 @@ beforeEach(async () => {
     await requestModel.deleteMany();
 });
 
+
+
 describe("testing missing days route", () => {
 
     test("testing attending all days case", async() => {
@@ -59,7 +61,7 @@ describe("testing missing days route", () => {
         const response = await request.post('/login').send({email : member.email, password : plainTextPassword});
         const token = response.headers.auth_token;
         const res = await request.get('/missingDays').set('auth_token', token);
-        expect(res.body).toHaveLength(9);
+        expect(res.body).toHaveLength(10);
     }, 15000)
 
     test("testing leave requests case", async() => {
@@ -70,6 +72,20 @@ describe("testing missing days route", () => {
         const response = await request.post('/login').send({email : member.email, password : plainTextPassword});
         const token = response.headers.auth_token;
         const res = await request.get('/missingDays').set('auth_token', token);
-        expect(res.body).toHaveLength(6);
+        expect(res.body).toHaveLength(7);
     }, 15000)
+
+    test("testing compensation requests case", async() => {
+        const {member, plainTextPassword} = await createMember();
+        member.attendance = [{signIn : new Date(2020, 11, 19, 5), signOut : new Date(2020, 11, 19, 9)}];
+        await member.save();
+        await createRequest(new Date(2020, 11, 16), undefined, 'compensation', new Date(2020, 11, 19)).save();
+        await createRequest(new Date(2020, 10, 16), undefined, 'compensation', new Date(2020, 10, 21)).save();
+        const response = await request.post('/login').send({email : member.email, password : plainTextPassword});
+        const token = response.headers.auth_token;
+        const res = await request.get('/missingDays').set('auth_token', token);
+        expect(res.body).toHaveLength(9);
+    }, 15000)
+
+
 })
