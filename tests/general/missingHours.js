@@ -23,69 +23,58 @@ beforeEach(async () => {
     await requestModel.deleteMany();
 });
 
+describe("testing missing hours route", () => {
 
-
-describe("testing missing days route", () => {
-
-    test("testing attending all days case", async() => {
+    test("testing not attending all days fully", async() => {
         const {member, plainTextPassword} = await createMember();
         const curDate = new Date(), curYear = curDate.getFullYear(), curMonth = curDate.getMonth(), curDay = curDate.getDate();
         attendance = [];
         for(let i = 11; i <= curDay; i++)
-            attendance[attendance.length] = {signIn : new Date(curYear, curMonth, i, 8), signOut : new Date(curYear, curMonth, i, 10)};
+            attendance[attendance.length] = {signIn : new Date(curYear, curMonth, i, 10), signOut : new Date(curYear, curMonth, i, 12)};
         member.attendance = attendance;
         await member.save();
         const response = await request.post('/login').send({email : member.email, password : plainTextPassword});
         const token = response.headers.auth_token;
-        const res = await request.get('/missingDays').set('auth_token', token);
-        expect(res.body).toHaveLength(0);
-    }, 15000)
+        const res = await request.get('/missingHours').set('auth_token', token);
+        expect(res.body.missingHours).toBe(10 * 8.4 - 12 * 2);
+    })
 
-    test("testing missing some days case", async() => {
+    test("testing attending all days fully", async() => {
         const {member, plainTextPassword} = await createMember();
         const curDate = new Date(), curYear = curDate.getFullYear(), curMonth = curDate.getMonth(), curDay = curDate.getDate();
         attendance = [];
-        for(let i = 11; i < curDay - 2; i++)
-            attendance[attendance.length] = {signIn : new Date(curYear, curMonth, i, 8), signOut : new Date(curYear, curMonth, i, 10)};
+        for(let i = 11; i <= curDay; i++) {
+            if(i == 11 || i == 12 || i == 18 || i == 19)
+                continue;
+            attendance[attendance.length] = {signIn : new Date(curYear, curMonth, i, 8), signOut : new Date(curYear, curMonth, i, 15, 24)};
+            attendance[attendance.length] = {signIn : new Date(curYear, curMonth, i, 16), signOut : new Date(curYear, curMonth, i, 17)};
+        }
         member.attendance = attendance;
         await member.save();
         const response = await request.post('/login').send({email : member.email, password : plainTextPassword});
         const token = response.headers.auth_token;
-        const res = await request.get('/missingDays').set('auth_token', token);
-        expect(res.body).toHaveLength(3);
-    }, 15000)
+        const res = await request.get('/missingHours').set('auth_token', token);
+        expect(res.body.missingHours).toBe(0);
+    })
 
-    test("testing dayoff case", async() => {
+    test("testing having compensation days", async() => {
         const {member, plainTextPassword} = await createMember();
-        await member.save();
-        const response = await request.post('/login').send({email : member.email, password : plainTextPassword});
-        const token = response.headers.auth_token;
-        const res = await request.get('/missingDays').set('auth_token', token);
-        expect(res.body).toHaveLength(10);
-    }, 15000)
-
-    test("testing leave requests case", async() => {
-        const {member, plainTextPassword} = await createMember();
-        await member.save();
-        await createRequest(new Date(2020, 11, 20), 2, 'sick').save();
-        await createRequest(new Date(2020, 11, 22), 1, 'annual').save();
-        const response = await request.post('/login').send({email : member.email, password : plainTextPassword});
-        const token = response.headers.auth_token;
-        const res = await request.get('/missingDays').set('auth_token', token);
-        expect(res.body).toHaveLength(7);
-    }, 15000)
-
-    test("testing compensation requests case", async() => {
-        const {member, plainTextPassword} = await createMember();
-        member.attendance = [{signIn : new Date(2020, 11, 19, 5), signOut : new Date(2020, 11, 19, 9)}];
+        const curDate = new Date(), curYear = curDate.getFullYear(), curMonth = curDate.getMonth(), curDay = curDate.getDate();
+        attendance = [];
+        for(let i = 11; i <= curDay; i++) {
+            if(i == 11 || i == 12 || i == 18 || i == 19)
+                continue;
+            attendance[attendance.length] = {signIn : new Date(curYear, curMonth, i, 8), signOut : new Date(curYear, curMonth, i, 15, 24)};
+            attendance[attendance.length] = {signIn : new Date(curYear, curMonth, i, 16), signOut : new Date(curYear, curMonth, i, 17)};
+        }
+        attendance[attendance.length] = {signIn : new Date(2020, 11, 19, 5), signOut : new Date(2020, 11, 19, 9)};
+        member.attendance = attendance;
         await member.save();
         await createRequest(new Date(2020, 11, 16), undefined, 'compensation', new Date(2020, 11, 19)).save();
         await createRequest(new Date(2020, 10, 16), undefined, 'compensation', new Date(2020, 10, 21)).save();
         const response = await request.post('/login').send({email : member.email, password : plainTextPassword});
         const token = response.headers.auth_token;
-        const res = await request.get('/missingDays').set('auth_token', token);
-        expect(res.body).toHaveLength(9);
-    }, 15000)
-
-
+        const res = await request.get('/missingHours').set('auth_token', token);
+        expect(res.body.missingHours).toBe(0);
+    })
 })

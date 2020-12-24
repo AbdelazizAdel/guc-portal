@@ -1,8 +1,6 @@
 const memberModel = require('../../server/models/StaffMember.js');
 const requestModel = require('../../server/models/Request');
-const app = require('../../server/app.js').app;
 const bcrypt = require('bcrypt');
-const superagent = require('superagent');
 
 async function createMember() {
     const member = new memberModel({
@@ -22,14 +20,15 @@ async function createMember() {
     };
 }
 
-function createRequest(startDate, duration, type) {
+function createRequest(startDate, duration, type, dayOff) {
     const request = new requestModel({
         sender : 'ac-1',
         reciever : 'ac-2',
         status : 'accepted',
         type,
         startDate,
-        duration
+        duration,
+        dayOff
     });
     return request;
 }
