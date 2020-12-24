@@ -8,9 +8,83 @@ const SlotModel = require('../models/Slot.js');
 const AttendanceModel = require('../models/Attendance.js');
 const CourseModel = require('../models/Course.js');
 const FacultyModel = require('../models/Faculty.js');
+const LocationModel = require('../models/Location.js')
 
 router.use(express.json());
 
+
+//* Add Update or Delete a Location 
+
+
+
+router.route("/opLocation/:id")
+.delete(async(req,res)=>{
+    //Location Model in Body 
+
+    LocationModel.findByIdAndDelete(req.params.id, (err,doc)=>{
+        if(err) {
+            
+            res.status(400).send("Couldnt Find a Location");
+            
+            return}
+        else{
+            res.status(200).send("Deleted Successfully");
+
+        }
+    })
+
+})
+.post(async(req,res) =>{
+
+    var body = req.body
+    try {
+        const location  = new LocationModel({
+            "name": body.name,
+            "capacity": body.capacity,
+            "type": body.type
+        })
+        LocationModel.findByIdAndUpdate(req.params.id,req.body,(err,doc) =>{
+            if(err) {
+                res.status(400).send("Couldnt Add Location, try again !");
+                return
+            }
+            else{
+                res.status(200).send("Location Added Successfully");
+            }
+        })
+    
+        
+    } catch (error) {
+        res.status(400).send("Couldnt Add Location, Data is invalid !");
+        
+    }
+   
+})
+router.route("/addLocation")
+.post(async(req,res) =>{
+
+    var body = req.body
+    try {
+        const location  = new LocationModel({
+            "name": body.name,
+            "capacity": body.capacity,
+            "type": body.type
+        })
+        location.save((err,doc)=>{
+            if(err) {
+            res.status(400).send("Couldnt Add Location, try again !");
+            return
+        }
+        else{
+            res.status(200).send("Location Added Successfully");
+        }
+        })
+        
+    } catch (error) {
+        
+    }
+   
+})
 // * Add update or delete a course
 router.route("/opCourse")
 .delete(async(req, res)=>{
@@ -19,10 +93,10 @@ router.route("/opCourse")
     CourseModel.findByIdAndRemove(courseID,(err,doc)=>{
         if(err) return console.log(err);
         console.log('Course Deleted Successfully');
-        res.status(200).send('Course Deleted Successfully');
-        
+        res.status(200).send('Course Deleted Successfully');  
     });
     })
+
 .post(async(req, res)=>{
 
 var courseID = req.body.id 
@@ -117,7 +191,7 @@ FacultyModel.findByIdAndDelete(facultyID,(err,doc)=>{
 
 })
 })
-
+// * Add a faculty
 router.route("/addFaculty")
 .post(async(req, res)=>{
 const body = req.body
@@ -138,5 +212,68 @@ faculty.save((err,doc) =>{
     }
 
 })
-
 })
+
+//* Add Delete Update a Department under a faculty
+
+router.route("/opDepartment")
+.post( async(req,res)=>{
+
+    const body = req.body
+    const Dept = body.id
+
+}
+
+)
+
+router.route("/addDepartment")
+.post( async(req,res)=>{
+    // Faculty ID
+    // A course Object 
+
+    const body = req.body
+    try {
+        const course = new CourseModel({
+            "id":body.id,
+            "name":body.name,
+            "coordinator": req.body.coordinator,
+            "TAs":body.TAs,
+            "instructors":body.instructors,
+            "numSlots": body.numSlots,
+            "mainDepartment":body.mainDepartment,
+            "teachingDepartments" : body.teachingDepartments
+        }
+        );
+        FacultyModel.findById(body.id,(err,doc) => {
+            if(err){
+                res.status(400).send("Error Locating the department")
+                return
+            }
+            else{
+                doc.departments.push(course.id)
+                course.save((err,doc) => {
+                    if(err) return console.log(err);
+                    console.log("Updated Successfully");
+                    res.status(200).send('Added');})
+
+                
+            }
+        })
+
+        
+    } catch (error) {
+        res.status(400).send("Error in Input Data")
+        return
+    }
+  
+
+
+  
+
+
+    
+
+
+}
+
+)
