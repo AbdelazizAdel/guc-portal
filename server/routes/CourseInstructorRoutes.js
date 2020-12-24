@@ -3,6 +3,7 @@ const express = require('express');
 const StaffMember = require('../models/StaffMember.js');
 const Slot = require('../models/Slot.js');
 const Course = require('../models/Course.js');
+const {authentication} = require('./middleware.js');
 const router = express.Router();
 router.use(express.json());
 router.post('/StaffMembers',(req,res)=>{
@@ -79,7 +80,7 @@ catch(err){
     res.status(404).send('fih moshkla ya mealem');
 }
 });
-router.get('/instructors/:instructorId/coverage',async(req,res)=>{
+router.get('/instructors/:instructorId/coverage',[authentication],async(req,res)=>{
     const instructorId = req.params.instructorId;
     const instructorCourses =await Course.find({'instructors':{"$in":`${instructorId}`}});
     if(instructorCourses.length === 0){
@@ -95,7 +96,7 @@ router.get('/instructors/:instructorId/coverage',async(req,res)=>{
 
 });
 // this route returns the courseIds this instructor is responsible for
-router.get('/instructors/:id/courses',async(req,res)=>{
+router.get('/instructors/:id/courses',[authentication],async(req,res)=>{
     const instructorId = req.params.id;
     const instructorCourses = await Course.find({'instructors':{"$in":`${instructorId}`}});
     //console.log(instructorCourses);
@@ -112,7 +113,7 @@ router.get('/instructors/:id/courses',async(req,res)=>{
     const response ={courses:coursesId};
     res.status(200).send(response);
 });
-router.get('/instructors/:instructorId/courses/:courseId/staff-members',async(req,res)=>{
+router.get('/instructors/:instructorId/courses/:courseId/staff-members',[authentication],async(req,res)=>{
     const instructorId = req.params.instructorId;
     const courseId = req.params.courseId;
     const course = await Course.findOne({'id':`${courseId}`});
@@ -169,7 +170,7 @@ router.get('/instructors/:instructorId/courses/:courseId/staff-members',async(re
  *      slotsInformation:[{ slotday : value , slotPeriod : value , slotLocation : value , instructor : value , course : value}]
  *  }
  */
-router.get('/courses/:courseId/slots-assignment',async(req,res)=>{
+router.get('/courses/:courseId/slots-assignment',[authentication],async(req,res)=>{
     const courseId = req.params.courseId;
     const instructorId = req.body.instructorId;
     if((await StaffMember.find({'id':instructorId})) === null ){
@@ -191,7 +192,7 @@ router.get('/courses/:courseId/slots-assignment',async(req,res)=>{
     response['slotsInformation']=allSlots;
     res.status(200).send(response);
 });
-router.get('/staff-members/:instructorId/department',async(req,res)=>{
+router.get('/staff-members/:instructorId/department',[authentication],async(req,res)=>{
     const instructorId = req.params.instructorId;
     const instructor = await StaffMember.findOne({'id':`${instructorId}`});
     if(instructor == null){
@@ -209,7 +210,7 @@ router.get('/staff-members/:instructorId/department',async(req,res)=>{
     res.status(200).send({staffMembers:membersId});
 
 });
-router.get('/staff-members/:instructorId/department/:staffMemberId',async(req,res)=>{
+router.get('/staff-members/:instructorId/department/:staffMemberId',[authentication],async(req,res)=>{
     const instructorId = req.params.instructorId;
     const memberId = req.params.staffMemberId; // a member from the same department
     const instructor = await StaffMember.findOne({'id':instructorId});
@@ -232,7 +233,7 @@ router.get('/staff-members/:instructorId/department/:staffMemberId',async(req,re
 
 });
 // get all staff members who share the same courses as the instructor
-router.get('/staff-members/:instructorId/courses',async(req,res)=>{
+router.get('/staff-members/:instructorId/courses',[authentication],async(req,res)=>{
     const instructorId = req.params.id;
     const instructor = await StaffMember.findOne({'id':instructorId});
     if(instructor == null){
@@ -283,7 +284,7 @@ router.get('/staff-members/:instructorId/courses',async(req,res)=>{
 
 });
 
-router.get('/instructors/:instructorId/staff-members/:staffMemberId',async(req,res)=>{
+router.get('/instructors/:instructorId/staff-members/:staffMemberId',[authentication],async(req,res)=>{
     const instructorId = req.params.instructorId;
     const memberId = req.params.staffMemberId; // a member from the same course
     const instructor = await StaffMember.findOne({'id':instructorId});
@@ -304,7 +305,7 @@ router.get('/instructors/:instructorId/staff-members/:staffMemberId',async(req,r
 });
 
 
-router.get('/instructors/:instructorId/courses/:courseid/unassigned-slots',async(req,res)=>{
+router.get('/instructors/:instructorId/courses/:courseid/unassigned-slots',[authentication],async(req,res)=>{
     const instructorId = req.params.instructorId;
     const courseId = req.params.courseid;
     const course = await Course.findOne({'id':`${courseId}`});
@@ -324,7 +325,7 @@ router.get('/instructors/:instructorId/courses/:courseid/unassigned-slots',async
  *  courseId :value
  * }
  */
-router.patch('/academic-members/:memberId/slots/:slotId',async(req,res)=>{
+router.patch('/academic-members/:memberId/slots/:slotId',[authentication],async(req,res)=>{
     const academicMemberId = req.params.memberId;
     const slotId =req.params.slotId;
     const instructorId = req.body.instructorId;
@@ -349,7 +350,7 @@ router.patch('/academic-members/:memberId/slots/:slotId',async(req,res)=>{
     res.status(200).send('The Slot was modified correctly');
 
 });
-router.patch('/instructors/:instructorId/slots/:slotId',async(req,res)=>{
+router.patch('/instructors/:instructorId/slots/:slotId',[authentication],async(req,res)=>{
     const slotId =req.params.slotId;
     const instructorId = req.params.instructorId;
     const courseId = req.body.courseId;    
@@ -361,7 +362,7 @@ router.patch('/instructors/:instructorId/slots/:slotId',async(req,res)=>{
     res.status(200).send('The Slot was modified correctly');
 
 });
-router.patch('/instructors/:instructorId/courses/:courseId/coordinator/:memberId',async(req,res)=>{
+router.patch('/instructors/:instructorId/courses/:courseId/coordinator/:memberId',[authentication],async(req,res)=>{
     instructorId = req.params.instructorId;
     courseId = req.params.courseId;
     memberId = req.params.memberId;

@@ -3,6 +3,7 @@ const Request = require('../models/Request.js');
 const StaffMember = require('../models/StaffMember.js');
 const Slot = require('../models/Slot.js');
 const Course = require('../models/Course.js');
+const {authentication} = require('./middleware');
 const router = express.Router();
 router.use(express.json());
 router.post('/request',async(req,res)=>{
@@ -21,7 +22,7 @@ router.post('/request',async(req,res)=>{
     res.status(200).send('The request has bben saved');
 
 })
-router.get('/coordinator/:coordinatorId/courses',async(req,res)=>{
+router.get('/coordinator/:coordinatorId/courses',[authentication],async(req,res)=>{
     const coordinatorId = req.params.coordinatorId;
     const coordinator = await StaffMember.findOne({'id':`${coordinatorId}`});
     if(coordinator == null){
@@ -40,7 +41,7 @@ router.get('/coordinator/:coordinatorId/courses',async(req,res)=>{
     res.status(200).send(response);
 
 })
-router.get('/coordinator/:coordinatorId/courses/:courseId/slot-linking-requests',async(req,res)=>{
+router.get('/coordinator/:coordinatorId/courses/:courseId/slot-linking-requests',[authentication],async(req,res)=>{
     const coordinatorId = req.params.coordinatorId;
     const courseId = req.params.courseId;
     const coordinator = await StaffMember.findOne({'id':`${coordinatorId}`});
@@ -91,7 +92,7 @@ router.get('/coordinator/:coordinatorId/courses/:courseId/slot-linking-requests'
 
 });
 
-router.patch('/coordinator/:coordinatorId/courses/:courseId',async (req,res)=>{
+router.patch('/coordinator/:coordinatorId/courses/:courseId',[authentication],async (req,res)=>{
     const coordinatorId = req.params.coordinatorId;
     const courseId = req.params.courseId;
     const requestId = req.body.requestId;
@@ -127,7 +128,7 @@ router.patch('/coordinator/:coordinatorId/courses/:courseId',async (req,res)=>{
         })
     }
     else{
-        await  Request.updateOne({'id':'accepted'},{'status':'rejected'});
+        await  Request.updateOne({'id':`${requestId}`},{'status':'rejected'});
         return res.status(200).send('Request has been successfully rejected!!');
     }
 })
