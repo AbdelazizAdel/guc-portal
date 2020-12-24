@@ -191,14 +191,18 @@ router.get('/viewDayOff', [authentication], async (req, res)=>{
     }
 });
 
-router.route('/viewChangeDayOffRequests').get(async (req, res)=>{
-    let HOD_Id = req.body.id;
+router.get('/viewChangeDayOffRequests', [authentication], async (req, res)=>{
+    try{
+        let HOD_Id = req.body.member.id;
 
-    let requests = await RequestModel.find({receiver: HOD_Id, type: "ChangeDayOffRequest"});
-    let results = []
-    for(request of requests)
-        results.push(getRequest(request));
-    res.send(results);
+        let requests = await RequestModel.find({receiver: HOD_Id, type: "ChangeDayOff"});
+        let results = []
+        for(request of requests)
+            results.push(getRequest(request));
+        res.status(200).send(results);    
+    }catch(err){
+        res.status(404).send(err);
+    }
 });
 
 function getRequest(request){
@@ -206,38 +210,57 @@ function getRequest(request){
 }
 
 router.route('/viewLeaveRequests').get(async (req, res)=>{
-    let HOD_Id = req.body.id;
+    try{
+        let HOD_Id = req.body.member.id;
 
-    let requests = await RequestModel.find({receiver: HOD_Id, type: "LeaveRequest"});
-    let results = []
-    for(request of requests)
-        results.push(getRequest(request));
+        let requests = await RequestModel.find({receiver: HOD_Id, type: "Leave"});
+        let results = []
+        for(request of requests)
+            results.push(getRequest(request));
 
-    res.send(results);
-})
-
-
-router.route('/request:id').post(async(req, res)=>{
-    let requestId = req.params.id;
-    let status = req.body.status;
-    if(status == 'Accepted'){
-        let request = await RequestModel.findOneAndUpdate({id: requestId}, {status: status});
-        if(request.type == "ChangeDayOffRequest"){
-            let newDayOff = request.startDate.getDay();
-            await StaffMemberModel.findOneAndUpdate({id: request.sender}, {dayOff: newDayOff});
-            res.status(200).send('day off has been changed successfully')
-        }else{
-            
-        }
-    }else{
-        let comment = req.body.comment;
-        if(comment != undefined){
-            await RequestModel.findOneAndUpdate({id: requestId}, {status: status, comment: comment});
-        }
+        res.status(200).send(results);
+    }catch(err){
+        res.status(404).send(err);
     }
 })
 
-router.route('/viewCoverage').get(async(req, res)=>{
+
+router.post('/request').post(async(req, res)=>{
+    try{
+        let requestId = req.body.id;
+        let status = req.body.status;
+        if(requestId == undefined || status == undefined)
+            return res.status(403).send('There is missing data');
+        if(status == 'Accepted'){
+            let request = await RequestModel.findOneAndUpdate({id: requestId}, {status: status});
+            switch(request.type){
+                case "ChangeDayOff":       
+                    let newDayOff = request.startDate.getDay();
+                    await StaffMemberModel.findOneAndUpdate({id: request.sender}, {dayOff: newDayOff});
+                    res.status(200).send('day off has been changed successfully');
+                    break;
+                case '':
+                    break;
+
+                default:
+
+    
+            }
+        }else if(status == 'Rejected'){
+            let comment = req.body.comment;
+            if(comment != undefined){
+                await RequestModel.findOneAndUpdate({id: requestId}, {status: status, comment: comment});
+            }
+            res.status(200).send('Rejected')
+        }else{
+            res.status(403).send('invalid request status');
+        }    
+    }catch(error){
+        res.status(404).send(error);
+    }
+})
+
+router.get('/viewCoverage', [authentication], async(req, res)=>{
     let HOD_Id = req.body.id;
     const department = await DepartmentModel.findOne({HOD: HOD_Id});
     const courses = await CourseModel.find({department: department});

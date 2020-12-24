@@ -15,4 +15,7 @@ app.use(courseInstructorRoutes);
 const HOD = require('./routes/HOD_Route');
 app.use(HOD);
 
+const HR = require('./routes/HR.js');
+app.use('/HR', HR);
+
 module.exports.app = app;

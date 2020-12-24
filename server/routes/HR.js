@@ -7,6 +7,7 @@ const {authentication} = require('./middleware');
 const superagent = require('superagent');
 const StaffMember = require('../models/StaffMember');
 const Joi = require('joi');
+const { func } = require('joi');
 const router = express.Router();
 const day_ms = 86400000; // number of milliseconds in a day
 
@@ -18,7 +19,7 @@ function isYearValid(year) {
 
 // function which checks for valid month
 function isMonthValid(month) {
-    return /^(0[0-9]|1[0-1])$/.test(day);
+    return /^(0[0-9]|1[0-1])$/.test(month);
 }
 
 function isValidStaffId(id) {
@@ -26,7 +27,7 @@ function isValidStaffId(id) {
 }
 
 router.get('/attendance/:year/:month/:staffId', [authentication], (req, res)=>{
-
+    console.log('Here')
     const {year, month, staffId} = req.params;
     if(!isYearValid(year))
         return res.send('this is not a valid year');
@@ -67,8 +68,9 @@ router.get('/attendance/:year/:month/:staffId', [authentication], (req, res)=>{
     res.send(result);
 })
 
+// function for getting attendance records based on the current day
 async function getAttendanceRecords(token, id) {
-    const curDate = Date.now(), curYear = curDate.getFullYear(), curMonth = curDate.getMonth(), curDay = curDate.getDate();
+    const curDate = new Date(), curYear = curDate.getFullYear(), curMonth = curDate.getMonth(), curDay = curDate.getDate();
     let year, month;
     if(curDay >= 11) {
         year = curYear;
@@ -78,7 +80,14 @@ async function getAttendanceRecords(token, id) {
         year = curMonth == 0 ? curYear - 1 : curYear;
         month = curMonth == 0 ? 11 : curMonth - 1;
     }
-    const records = await superagent.get(`httP://localhost:3000/${year}/${month}/${id}`).set('auth_token', token);
+    const response = await superagent.get(`http://localhost:3000/HR/attendance/${year}/${month}/${id}`).set('auth_token', token);
+    const records = response.body.map((elem) => {
+        if(elem.signIn != undefined)
+            elem.signIn = new Date(elem.signIn);
+        if(elem.signOut != undefined)
+            elem.signOut = new Date(elem.signOut);
+        return elem;
+    })
     return {
         records,
         startYear : year,
@@ -88,20 +97,19 @@ async function getAttendanceRecords(token, id) {
 
 // function for determining if the attendance record is valid or not
 function isValidRecord(record) {
-    let ans = true;
     const{signIn, signOut} = record;
     if(signIn == undefined || signOut == undefined)
-        ans = false;
+        return false;
     const year = signIn.getFullYear(), month = signIn.getMonth(), day = signIn.getDate();
     const min = new Date(year, month, day, 7).getTime(), max = new Date(year, month, day, 19).getTime();
     if(signIn.getTime() > max || signOut.getTime() < min)
-        ans = false;
-    return ans;
+        return false;
+    return true;
 }
 
 // function for determining the number of days passed in the current month (GUC month)
 function numOfDays(startYear, startMonth) {
-    const curDate = Date.now(), curDay = curDate.getDate();
+    const curDate = new Date(), curDay = curDate.getDate();
     let numDays;
     if(curDay >= 11)
         numDays = curDay - 11 + 1;
@@ -120,12 +128,11 @@ function createDays(firstDay, numDays) {
     return days;
 }
 
-router.get('/missingDays/:staffId', [authentication], async(req, res)=>{
-    const {dayoff, id} = await StaffMember.findOne({id: req.params.staffId});
-    const {records, startYear, startMonth} = await getAttendanceRecords(req.headers.auth_token, id);
+async function missingDays(id, dayOff, token) {
+    const {records, startYear, startMonth} = await getAttendanceRecords(token, id);
     const numDays = numOfDays(startYear, startMonth);
     const firstDay = new Date(startYear, startMonth, 11).getTime();
-    const days = createDays(firstDay, numDays);
+    let days = createDays(firstDay, numDays);
     for(let i = 0; i < records.length; i++) {
         if(!isValidRecord(records[i]))
             continue;
@@ -135,9 +142,21 @@ router.get('/missingDays/:staffId', [authentication], async(req, res)=>{
     const requests = await requestModel.find({sender : id, status : 'accepted'}).or([
         {type : 'annual'}, {type : 'accidental'}, {type : 'sick'}, {type : 'maternity'}
     ]);
+    const compensationLeaves = await requestModel.find({
+        sender : id,
+        status : 'accepted',
+        type : 'compensation',
+        startDate : {$gte : new Date(firstDay), $lt : new Date(firstDay + numDays * day_ms)},
+        dayOff :  {$gte : new Date(firstDay), $lt : new Date(firstDay + numDays * day_ms)}
+    });
+    for(let i = 0; i < compensationLeaves.length; i++) {
+        const d = compensationLeaves[i].dayOff, s = compensationLeaves[i].startDate;
+        if(!days[String(new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime())])
+            days[String(new Date(s.getFullYear(), s.getMonth(), s.getDate()).getTime())] = false;
+    }
     for(let i = 0; i < numDays; i++) {
         let date = new Date(firstDay + i * day_ms);
-        if(date.getDay() == 5 || date.getDay() == dayoff)
+        if(date.getDay() == 5 || date.getDay() == dayOff)
             days[String(date.getTime())] = false;
         else {
             let acceptedRequests = requests.filter((elem) => {
@@ -156,24 +175,38 @@ router.get('/missingDays/:staffId', [authentication], async(req, res)=>{
         if(days[String(date.getTime())] == true)
             result[result.length] = date;
     }
-    res.send(result);  
+    return result;
+}
+router.get('/StaffMembersWithMissingDays', [authentication], async(req, res)=>{
+    let staff = await StaffMember.find();
+    let missingDays_staff = [];
+    for(member of staff){
+        let days = await missingDays(member.id, member.dayOff, req.headers.auth_token);
+        console.log(days);
+        if(!days){
+            missingDays_staff.push({id: member.id, name: member.name, missingDays: days});
+        } 
+    }
+    res.status(200).send(missingDays_staff);
 })
 
-router.put('updateSalary', [authentication], async(req, res)=>{
+router.put('/updateSalary', [authentication], async(req, res)=>{
     const schema = Joi.object({
         newSalary: Joi.number().required(),
         staffId: Joi.string().min(4).pattern(new RegExp('ac-[1-9]\d*'))
     })
     
-    const{error, value} = schema.validate(req.body);
+    const{error, value} = schema.validate(req.body, {allowUnknown: true});
     if(!error){
         try{
-            await StaffMember.findOneAndUpdate({id: value.id}, {salary: newSalary});
+            await StaffMember.findOneAndUpdate({id: value.id}, {salary: value.newSalary});
             res.status(200).send('Salary updated successfully');    
         }catch(e){
             res.status(404).send(e);
         }
     }else{
-        res.status(403).send('invalid data');
+        res.status(403).send(error);
     }
 })
+
+module.exports = router

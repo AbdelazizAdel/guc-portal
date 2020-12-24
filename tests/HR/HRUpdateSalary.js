@@ -23,40 +23,8 @@ catch(err) {
 
 beforeEach(async () => {
     await memberModel.deleteMany();
-    await CourseModel.deleteMany();
-    await departmentModel.deleteMany();
-    await createCourse(course, 'analysis');
-    await createDepartment();
     await createStaffMembers();
 });
-
-
-// afterAll(async()=>{
-//     await memberModel.deleteMany();
-//     await CourseModel.deleteMany();
-//     await departmentModel.deleteMany();
-// })
-
-async function createCourse(courseId, courseName){
-    const courseA = new CourseModel({
-        id: courseId,
-        name: courseName,
-        mainDepartment : 'd-1',
-    });
-    
-    await courseA.save();
-}
-var course = 'CSEN 703';
-
-async function createDepartment(){
-    const department = new departmentModel({
-        id: 'd-1',
-        name: 'Computer Science',
-        HOD: 'ac-1'
-    })
-
-    await department.save();
-}
 
 async function createStaffMembers(){
     let staff = [];
@@ -72,7 +40,8 @@ async function createStaffMembers(){
             name: 'ac-'+i,
             department: 'd-1',
             dayOff: i%7,
-            attendance: attendance
+            attendance: attendance,
+            salary: 1000
         });
         staff.push(memberA);
         await memberA.save();
@@ -101,13 +70,14 @@ async function createHR() {
     };
 }
 
-describe('testing view staff with missing days/hours', ()=>{
-    test('testing view staff with missing days', async()=>{
+
+describe('testing update salary', ()=>{
+    test('update salary', async()=>{
         const{hr, plainTextPassword}= await createHR();
         const response = await request.post('/login').send({email : hr.email, password : plainTextPassword});
         const token = response.headers.auth_token;
-        const res = await request.get('/HR/StaffMembersWithMissingDays').set('auth_token', token);
-        console.log(res.body);
+        const res = await request.put('/HR/updateSalary').send({newSalary: 4000, staffId: 'ac-2'}).set('auth_token', token);
         expect(200);
+        expect(res.text).toMatch('Salary updated successfully');
     })
 })

@@ -65,7 +65,8 @@ async function createStaffMembers(){
             id: 'ac-'+i,
             email: 'ac-'+i+'@guc.edu.eg',
             name: 'ac-'+i,
-            department: 'd-1'
+            department: 'd-1',
+            dayOff: i%7
         });
         staff.push(memberA);
         await memberA.save();
@@ -77,7 +78,6 @@ async function createStaffMembers(){
 describe('view day off', ()=>{
     test('view day off of a single staff in the department', async()=>{
         const res = await request.get('/viewDayOff').send({staffId: 'ac-2'}).set('auth_token', token);
-        console.log(res.body)
         expect(200);
         expect(res.body.dayOff).toBe(2);
     })
