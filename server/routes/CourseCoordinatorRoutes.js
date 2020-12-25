@@ -135,7 +135,7 @@ router.patch('/coordinator/:coordinatorId/courses/:courseId',[authentication],as
 
 router.post('/slot/add', [authentication], async (req,res)=>{
     try {
-        let slotId = await MetaData.find({'sequenceName':`slot`}).lastId;
+        let slotId = await MetaData.find({'sequenceName':`slot`})[0].lastId;
         let sender = req.body.member.id;
         let courseId = req.body.course;
         let instructorId = req.body.instructor;
@@ -158,7 +158,7 @@ router.post('/slot/add', [authentication], async (req,res)=>{
             return instructor === instructorId;
         });
         
-        const responnse = await Course.updateOne({id : courseId}, {numSlots : course.numSlots + 1}); //not sure
+        const responnse = await Course.updateOne({'id' : courseId}, {'numSlots' : course.numSlots + 1}); //not sure
         
         slot = new Slot({
             'id': slotId,
@@ -196,8 +196,8 @@ router.delete('/slot/delete', [authentication], async (req,res)=>{
             res.status(404).send('Unauthorized');
         }
         
-        const updateResponnse = await Course.updateOne({id : courseId}, {numSlots : course.numSlots - 1}); //not sure
-        const deleteResponse = await Slot.deleteOne({id : slotId});
+        const updateResponnse = await Course.updateOne({'id' : courseId}, {'numSlots' : course.numSlots - 1}); //not sure
+        const deleteResponse = await Slot.deleteOne({'id' : slotId});
 
         res.status(200).send('slot deleted successfully');
     }
@@ -213,7 +213,7 @@ router.update('slot/update', [authentication], async (req, res) => {
         let sender = req.body.member.id;
 
         if(slotId === undefined){
-            res.status(404).send('enter slot id'); 
+            res.status(404).send('enter slot id');
         }
 
         let slot = await Slot.find({'id' : slotId})[0];
@@ -224,8 +224,8 @@ router.update('slot/update', [authentication], async (req, res) => {
         if(sender !== course.coordinator){
             res.status(404).send('Unauthorized');
         }
-        
-        slot = new Slot({
+
+        const updateResponnse = await Slot.updateOne({'id' : slotId}, {
             'id': slotId,
             'day': req.body.day,
             'period': req.body.period,
