@@ -62,16 +62,16 @@ describe("testing missing hours route", () => {
         const curDate = new Date(), curYear = curDate.getFullYear(), curMonth = curDate.getMonth(), curDay = curDate.getDate();
         attendance = [];
         for(let i = 11; i <= curDay; i++) {
-            if(i == 11 || i == 12 || i == 18 || i == 19)
+            if(i == 11 || i == 12 || i == 18 || i == 19 || 25)
                 continue;
             attendance[attendance.length] = {signIn : new Date(curYear, curMonth, i, 8), signOut : new Date(curYear, curMonth, i, 15, 24)};
             attendance[attendance.length] = {signIn : new Date(curYear, curMonth, i, 16), signOut : new Date(curYear, curMonth, i, 17)};
         }
-        attendance[attendance.length] = {signIn : new Date(2020, 11, 19, 5), signOut : new Date(2020, 11, 19, 9)};
+        //attendance[attendance.length] = {signIn : new Date(2020, 11, 19, 5), signOut : new Date(2020, 11, 19, 9)};
         member.attendance = attendance;
         await member.save();
-        await createRequest(new Date(2020, 11, 16), undefined, 'compensation', new Date(2020, 11, 19)).save();
-        await createRequest(new Date(2020, 10, 16), undefined, 'compensation', new Date(2020, 10, 21)).save();
+        await createRequest(new Date(2020, 11, 16), undefined, 'CompensationLeave', new Date(2020, 11, 19)).save();
+        await createRequest(new Date(2020, 10, 16), undefined, 'CompensationLeave', new Date(2020, 10, 21)).save();
         const response = await request.post('/login').send({email : member.email, password : plainTextPassword});
         const token = response.headers.auth_token;
         const res = await request.get('/missingHours').set('auth_token', token);
