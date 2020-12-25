@@ -284,7 +284,7 @@ router.post('/leave/request', [Authentication], async (req, res) => {
             res.status(404).send('enter valid dates');
         }
 
-        if(leaveType === 'SickLeave' && Math.ceil((second-first)/(1000*60*60*24)) > 3){
+        if(leaveType === 'SickLeave' && startDate < submissionDate && Math.ceil((submissionDate-startDate)/(1000*60*60*24)) > 3){
             res.status(404).send('You can submit leave request by maximum 3 days');
         }
         

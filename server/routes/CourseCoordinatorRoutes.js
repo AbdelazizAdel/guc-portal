@@ -135,12 +135,13 @@ router.patch('/coordinator/:coordinatorId/courses/:courseId',[authentication],as
 
 router.post('/slot/add', [authentication], async (req,res)=>{
     try {
-        let slotId = await MetaData.find({'sequenceName':`slot`})[0].lastId;
+        let slotId = await MetaData.find({'sequenceName':`slot`});
+        slotId = slotId[0].lastId;
         if(slotId === undefined){
             slotId = 1;
         }
         slotId++;
-        await MetaDate.updateOne({'sequenceName' : 'slot'}, {'lastId' : slotId}); //not sure
+        await MetaDate.updateOne({'sequenceName' : 'slot'}, {'lastId' : slotId});
         let sender = req.body.member.id;
         let courseId = req.body.course;
         let instructorId = req.body.instructor;
@@ -149,7 +150,8 @@ router.post('/slot/add', [authentication], async (req,res)=>{
         if(courseId === undefined){
             res.status(404).send('enter course id'); 
         }
-        let course = await Course.find({'id': courseId})[0];
+        let course = await Course.find({'id': courseId});
+        course = course[0];
 
         if(sender !== course.coordinator){
             res.status(404).send('Unauthorized');
@@ -202,10 +204,12 @@ router.delete('/slot/delete', [authentication], async (req,res)=>{
             res.status(404).send('enter slot id'); 
         }
 
-        let slot = await Slot.find({'id' : slotId})[0];
+        let slot = await Slot.find({'id' : slotId});
+        slot = slot[0];
         courseId = slot.course;
 
-        let course = await Course.find({'id': courseId})[0];
+        let course = await Course.find({'id': courseId});
+        course = course
 
         if(sender !== course.coordinator){
             res.status(404).send('Unauthorized');
@@ -231,10 +235,12 @@ router.post('slot/update', [authentication], async (req, res) => {
             res.status(404).send('enter slot id');
         }
 
-        let slot = await Slot.find({'id' : slotId})[0];
+        let slot = await Slot.find({'id' : slotId});
+        slot = slot[0];
         courseId = slot.course;
 
-        let course = await Course.find({'id': courseId})[0];
+        let course = await Course.find({'id': courseId});
+        course = course[0];
 
         if(sender !== course.coordinator){
             res.status(404).send('Unauthorized');
