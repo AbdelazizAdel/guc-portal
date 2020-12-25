@@ -280,7 +280,7 @@ router.post('/leave/request', [Authentication], async (req, res) => {
         }
 
         if(leaveType === 'CompensationLeave' && (dayOff.getFullYear !== submissionDate.getFullYear() || startDate.getFullYear() !== submissionDate.getFullYear() 
-        || (startDate.getMonth() === submissionDate.getMonth() && (startDate.getDate() > 10 || submissionDate.getDate() < 11) || startDate.getMonth() === submissionDate.getMonth() - 1 && startDate.getDate() > 10 && submissionDate.getDate() < 11))){
+        || !(startDate.getMonth() === submissionDate.getMonth() && (startDate.getDate() > 10 || submissionDate.getDate() < 11) || startDate.getMonth() === submissionDate.getMonth() - 1 && startDate.getDate() > 10 && submissionDate.getDate() < 11))){
             res.status(404).send('enter valid dates');
         }
 
