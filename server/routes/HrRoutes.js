@@ -7,17 +7,18 @@ const RequestModel = require('../models/Request.js');
 const SlotModel = require('../models/Slot.js');
 const CourseModel = require('../models/Course.js');
 const FacultyModel = require('../models/Faculty.js');
-const LocationModel = require('../models/Location.js')
+const LocationModel = require('../models/Location.js');
+const metaData = require('../models/metaData');
 const auth = require('../routes/middleware.js').authentication;
 
 router.use(express.json());
-router.use(auth)
+//router.use(auth)
 
 
 
 //* Add Update or Delete a Location 
 
-router.route("/opLocation/:id",auth)
+router.route("/opLocation/:id")
 .delete(async(req,res)=>{
     if(!isHR(req.body.member.id)){
         res.status(405).send("Error Invalid Credentials")
@@ -62,12 +63,13 @@ router.route("/opLocation/:id",auth)
     }
 })
 
-router.route("/addLocation",auth)
+router.route("/addLocation")
 .post(async(req,res) =>{
-    if(!isHR(req.body.member.id)){
-        res.status(405).send("Error Invalid Credentials")
-        return
-    }
+
+    // if(!isHR(req.body.member.id)){
+    //     res.status(405).send("Error Invalid Credentials")
+    //     return
+    // }
 
     var body = req.body
     try {
@@ -359,9 +361,15 @@ router.route("/addMember",auth)
         else{
             if (doc.capacity > 0 && doc.type == "office"){
                 try {
+                    const id = await metaData.find({"sequenceName": 'ac'})[0].lastId;
+                    if(id === undefined){
+                        id = 1;
+                    }
+                    id++;
+                   await metaData.updateOne({"sequenceName": 'ac'},{'lastId' : id});
 
                     const StaffMember = new StaffMemberSchema({
-                        "id":body.id,
+                        "id":id,
                         "email":body.email,
                         "name":body.id,
                         "gender":body.gender,
