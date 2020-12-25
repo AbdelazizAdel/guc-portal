@@ -36,7 +36,6 @@ router.get('/attendance/:year/:month/:staffId', [authentication], async(req, res
 
 
     if(!isValidStaffId(staffId)){
-        console.log('here3', staffId)
         return res.send('this is not a valid staffmember');
     }
 
@@ -150,13 +149,13 @@ async function missingDays(id, dayOff, token) {
         const year = records[i].signIn.getFullYear(), month = records[i].signIn.getMonth(), day = records[i].signIn.getDate();
         days[String(new Date(year, month, day).getTime())] = false;
     }
-    const requests = await requestModel.find({sender : id, status : 'accepted'}).or([
-        {type : 'annual'}, {type : 'accidental'}, {type : 'sick'}, {type : 'maternity'}
+    const requests = await requestModel.find({sender : id, status : 'Accepted'}).or([
+        {type : 'AnnualLeave'}, {type : 'AccidentalLeave'}, {type : 'SickLeave'}, {type : 'MaternityLeave'}
     ]);
     const compensationLeaves = await requestModel.find({
         sender : id,
-        status : 'accepted',
-        type : 'compensation',
+        status : 'Accepted',
+        type : 'CompensationLeave',
         startDate : {$gte : new Date(firstDay), $lt : new Date(firstDay + numDays * day_ms)},
         dayOff :  {$gte : new Date(firstDay), $lt : new Date(firstDay + numDays * day_ms)}
     });
@@ -222,8 +221,8 @@ async function missingHours(id, dayOff, token) {
     }
     const compensationLeaves = await requestModel.find({
         sender : id,
-        status : 'accepted',
-        type : 'compensation',
+        status : 'Accepted',
+        type : 'CompensationLeave',
         startDate : {$gte : new Date(firstDay), $lt : new Date(firstDay + numDays * day_ms)},
         dayOff :  {$gte : new Date(firstDay), $lt : new Date(firstDay + numDays * day_ms)}
     });

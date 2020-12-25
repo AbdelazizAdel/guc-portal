@@ -79,16 +79,16 @@ describe('testing assign/delete/update a course instructor', ()=>{
     test('testing assign', async()=>{
         let res;
         for(instructor of instructors)
-            res = await request.post('/assignInstructor').send({courseId: course, instructorId: instructor}).set('auth_token', token);
+            res = await request.post('/HOD/assignInstructor').send({courseId: course, instructorId: instructor}).set('auth_token', token);
 
         expect(res.body.instructors).toEqual(expect.arrayContaining(instructors));
     })
 
     test('testing update', async()=>{
         for(instructor of instructors)
-            await request.post('/assignInstructor').send({courseId: course, instructorId: instructor}).set('auth_token', token);
+            await request.post('/HOD/assignInstructor').send({courseId: course, instructorId: instructor}).set('auth_token', token);
 
-        const res = await request.put('/updateInstructor').send({courseId: course, instructorId1: instructors[0], instructorId2: instructor2}).set('auth_token', token);
+        const res = await request.put('/HOD/updateInstructor').send({courseId: course, instructorId1: instructors[0], instructorId2: instructor2}).set('auth_token', token);
 
         expect(res.body.instructors).not.toEqual(expect.arrayContaining([instructors[0]]));
         expect(res.body.instructors).toEqual(expect.arrayContaining([instructor2]));
@@ -96,8 +96,8 @@ describe('testing assign/delete/update a course instructor', ()=>{
 
     test('testing delete', async()=>{
         for(instructor of instructors)
-            await request.post('/assignInstructor').send({courseId: course, instructorId: instructor}).set('auth_token', token);
-        const res = await request.delete('/deleteInstructor').send({courseId: course, instructorId: 'ac-2'}).set('auth_token', token);
+            await request.post('/HOD/assignInstructor').send({courseId: course, instructorId: instructor}).set('auth_token', token);
+        const res = await request.delete('/HOD/deleteInstructor').send({courseId: course, instructorId: 'ac-2'}).set('auth_token', token);
         expect(res.status).toBe(200);
         expect(res.body.instructors).not.toEqual(expect.arrayContaining(['ac-2']));
     }) 
@@ -107,7 +107,7 @@ describe('testing assign/delete/update a course instructor', ()=>{
 describe('testing view Staff', ()=>{
     test('view all staff', async()=>{
 
-        const res = await request.get('/viewStaff').send().set('auth_token', token);
+        const res = await request.get('/HOD/viewStaff').send().set('auth_token', token);
         for(let i=0; i< staff.length; i++){
             expect(res.body[i].id).toEqual(staff[i].id);
         }
@@ -116,10 +116,10 @@ describe('testing view Staff', ()=>{
     test('view staff per course', async()=>{
 
         for(instructor of instructors)
-            await request.post('/assignInstructor').send({courseId: course, instructorId: instructor}).set('auth_token', token);
+            await request.post('/HOD/assignInstructor').send({courseId: course, instructorId: instructor}).set('auth_token', token);
 
 
-        const res = await request.get('/viewStaff').send({courseId: 'CSEN 703'}).set('auth_token', token);
+        const res = await request.get('/HOD/viewStaff').send({courseId: 'CSEN 703'}).set('auth_token', token);
         expect(res.body.courseId).toEqual('CSEN 703');
         for(let i=0;i<4;i++)
             expect(res.body.staff[i].id).toEqual(instructors[i]);

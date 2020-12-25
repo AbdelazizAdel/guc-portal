@@ -224,7 +224,7 @@ router.get('/viewLeaveRequests', [authentication], async (req, res)=>{
 })
 
 
-router.post('/HOD/request', [authentication], async(req, res)=>{
+router.post('/request', [authentication], async(req, res)=>{
     try{
         let requestId = req.body.requestId;
         let status = req.body.status;
@@ -307,40 +307,49 @@ router.post('/HOD/request', [authentication], async(req, res)=>{
             res.status(403).send('invalid request status');
         }    
     }catch(error){
-        console.log('here4')
         res.status(404).send(error);
     }
 })
 
 router.get('/viewCoverage', [authentication], async(req, res)=>{
-    let HOD_Id = req.body.id;
+    let HOD_Id = req.body.member.id;
     const department = await DepartmentModel.findOne({HOD: HOD_Id});
-    const courses = await CourseModel.find({department: department});
+    const courses = await CourseModel.find({mainDepartment: department.id});
     let coveragerPerCourse = []
     for(course of courses){
         coveragerPerCourse.push(await courseCoverage(course));
     }
-
     res.send(coveragerPerCourse);
 })
 
 async function courseCoverage(course){
-    let numAssignedSlots = await SlotModel.countDocuments({course: course});
-    let coverage = numAssignedSlots/course.numSlots;
+    let numAssignedSlots = await SlotModel.countDocuments({course: course.id});
+    let coverage = (numAssignedSlots/course.numSlots)*100;
     return {courseId: course.id, name: course.name, coverage: coverage};
 }
 
-router.get('/viewTeachingAssignments',[authentication] ,async (req, res)=>{
-    let HOD_Id = req.body.id;
-    let course = req.body.courseId;
-
-    let slots = await SlotModel.find({course: course});
-    let teachingAssignments = [];
-    for(slot of slots){
-        let member = await StaffMemberModel.findOne({id: slot.instructor});
-        slot.instructor = getProfile(member);
-        teachingAssignments.push(slot);
+router.get('/viewTeachingAssignments/:courseId',[authentication] ,async (req, res)=>{
+    try{
+        let HOD_Id = req.body.member.id;
+        let department = await DepartmentModel.findOne({HOD: HOD_Id});
+        let course = req.params.courseId;
+        if(await CourseModel.findOne({id: course, mainDepartment: department.id})){
+            let slots = await SlotModel.find({course: course});
+            let teachingAssignments = [];
+            for(slot of slots){
+                let member = await StaffMemberModel.findOne({id: slot.instructor});
+                teachingAssignments.push(teachindAssignment(slot, member));
+            }
+            res.send(teachingAssignments);        
+        }else{
+            res.status(404).send('invalid course');
+        }
+    }catch(error){
+        res.status(404).send(error);
     }
-    res.send(teachingAssignments);
 })
+
+function teachindAssignment(slot, member) {
+    return {staffId: member.id, name: member.name, course: slot.course, period: slot.period, day: slot.day, location: slot.location};
+}
 module.exports = router;

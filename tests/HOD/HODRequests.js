@@ -39,10 +39,10 @@ beforeEach(async () => {
 });
 
 
-afterAll(async()=>{
-    await memberModel.deleteMany();
-    await requestModel.deleteMany();
-})
+// afterAll(async()=>{
+//     await memberModel.deleteMany();
+//     await requestModel.deleteMany();
+// })
 
 async function createCourse(courseId, courseName){
     const courseA = new CourseModel({
@@ -94,46 +94,46 @@ async function createStaffMembers(){
 }
 
 
-// describe('testing HOD requests', ()=>{
-//     test('testing view change day off requests', async()=>{
-//         const req = new requestModel({
-//             id: 'req-1',
-//             sender: 'ac-2',
-//             receiver: 'ac-1',
-//             status: 'pending',
-//             content: 'day off',
-//             type: "ChangeDayOff",
-//             dayOff : 5
-//         }) 
-//         await req.save();
-//         const res = await request.get('/viewChangeDayOffRequests').set('auth_token', token);
-//         expect(res.body[0].id).toBe(req.id);
-//     })
-//     test('testing view change leave requests', async()=>{
-//         const req = new requestModel({
-//             id: 'req-1',
-//             sender: 'ac-2',
-//             receiver: 'ac-1',
-//             status: 'pending',
-//             content: 'day off',
-//             type: "AnnualLeave"
-//         }) 
-//         await req.save();
-//         const req2 = new requestModel({
-//             id: 'req-2',
-//             sender: 'ac-4',
-//             receiver: 'ac-1',
-//             status: 'pending',
-//             content: 'day off',
-//             type: "SickLeave"
-//         }) 
-//         await req2.save();
-//         const res = await request.get('/viewLeaveRequests').set('auth_token', token);
-//         console.log(res.body)
-//         expect(res.body[0].id).toBe(req.id);
-//         expect(res.body[1].id).toBe(req2.id);
-//     })
-// })
+describe('testing HOD requests', ()=>{
+    test('testing view change day off requests', async()=>{
+        const req = new requestModel({
+            id: 'req-1',
+            sender: 'ac-2',
+            receiver: 'ac-1',
+            status: 'pending',
+            content: 'day off',
+            type: "ChangeDayOff",
+            dayOff : 5
+        }) 
+        await req.save();
+        const res = await request.get('/viewChangeDayOffRequests').set('auth_token', token);
+        expect(res.body[0].id).toBe(req.id);
+    })
+    test('testing view change leave requests', async()=>{
+        const req = new requestModel({
+            id: 'req-1',
+            sender: 'ac-2',
+            receiver: 'ac-1',
+            status: 'pending',
+            content: 'day off',
+            type: "AnnualLeave"
+        }) 
+        await req.save();
+        const req2 = new requestModel({
+            id: 'req-2',
+            sender: 'ac-4',
+            receiver: 'ac-1',
+            status: 'pending',
+            content: 'day off',
+            type: "SickLeave"
+        }) 
+        await req2.save();
+        const res = await request.get('/HOD/viewLeaveRequests').set('auth_token', token);
+        console.log(res.body)
+        expect(res.body[0].id).toBe(req.id);
+        expect(res.body[1].id).toBe(req2.id);
+    })
+})
 
 describe('testing accept/reject requests',()=>{
   test('testing accept change-day off request', async()=>{
