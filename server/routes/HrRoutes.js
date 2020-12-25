@@ -9,16 +9,16 @@ const AttendanceModel = require('../models/Attendance.js');
 const CourseModel = require('../models/Course.js');
 const FacultyModel = require('../models/Faculty.js');
 const LocationModel = require('../models/Location.js')
-const auth = require('../routes/middleware.js')
+const auth = require('../routes/middleware.js').authentication;
 
 router.use(express.json());
-//router.use(auth)
+router.use(auth)
 
 
 
 //* Add Update or Delete a Location 
 
-router.route("/opLocation/:id")
+router.route("/opLocation/:id",auth)
 .delete(async(req,res)=>{
   
     LocationModel.findByIdAndDelete(req.params.id, (err,doc)=>{
@@ -55,7 +55,7 @@ router.route("/opLocation/:id")
     }
 })
 
-router.route("/addLocation")
+router.route("/addLocation",auth)
 .post(async(req,res) =>{
 
     var body = req.body
@@ -82,7 +82,7 @@ router.route("/addLocation")
 })
 
 // * update or delete a Faculty
-router.route("/opFaculty/:id")
+router.route("/opFaculty/:id",auth)
 .delete(async(req, res)=>{
 
     var FacultyID = req.body.id
@@ -115,7 +115,7 @@ FacultyModel.findByIdAndUpdate(req.params.id,req.body,(err,doc)=>{
         })
 
 // * Add a faculty
-router.route("/addFaculty")
+router.route("/addFaculty",auth)
 .post(async(req, res)=>{
 const body = req.body
 const facultyID = body.id
@@ -139,9 +139,8 @@ faculty.save((err,doc) =>{
 
 //* Add Delete Update a Department under a faculty
 
-
 // * Add A Dept under a faculty 
-router.route("/addDepartment")
+router.route("/addDepartment",auth)
 .post( async(req,res)=>{
     // Faculty ID
     // A course Object 
@@ -173,7 +172,7 @@ router.route("/addDepartment")
     }
 })
 // * Delete Update a Department under a faculty
-router.route("/opDepartment/:id")
+router.route("/opDepartment/:id",auth)
 .post(
     async(req, res) =>{
         DepartmentModel.findByIdAndUpdate(req.params.id,req.body,(err,doc)=>{
@@ -204,7 +203,7 @@ router.route("/opDepartment/:id")
 
 // * Add update or delete a course
 
-router.route("/opCourse/:id")
+router.route("/opCourse/:id",auth)
 .delete(async(req, res)=>{
     CourseModel.findByIdAndDelete(req.params.id,(err,doc)=>{
         if(err) return console.log(err);
@@ -225,7 +224,7 @@ CourseModel.findByIdAndUpdate(req.params.id,req.body,(err,doc) => {
 })
 });
 // * AddCourse
-router.route("/addCourse")
+router.route("/addCourse",auth)
 .post(async(req, res)=>{
 
     const body = req.body
@@ -253,7 +252,7 @@ router.route("/addCourse")
     })
 })
 //* Update / Delete Staff Members
-router.route("/opStaffMemeber/:id")
+router.route("/opStaffMemeber/:id",auth)
 .post(async(req, res)=>{
 
     MemberModel.findByIdAndUpdate(req.params.id,req.body, (err,doc)=>{
@@ -282,7 +281,7 @@ router.route("/opStaffMemeber/:id")
 )
 
 // * Add a New Staff Member 
-router.route("/addMember")
+router.route("/addMember",auth)
 .post(async(req,res)=>{
    // ! Unique Emails
 
@@ -341,7 +340,7 @@ router.route("/addMember")
    }
 }) 
 
-router.route("/addSignIn/:id")
+router.route("/addSignIn/:id",auth)
 .post(async(req,res)=>{
     // body{
 // signInDate: Date
@@ -366,7 +365,7 @@ router.route("/addSignIn/:id")
   }) 
 })
 
-router.route("/addSignOut/:id")
+router.route("/addSignOut/:id",auth)
 .post(async(req,res)=>{
 
     MemberModel.findById(req.params.id,(err,doc)=>{
@@ -389,14 +388,17 @@ router.route("/addSignOut/:id")
 
 })
 
-router.route("/addAttendance/:id")
+router.route("/addAttendance/:id",auth)
 .post(async(req,res)=>{
     // body{
 // signInDate: Date
 //Singout: Date
   //  }
   //TODO : check ID is diff
-
+    if(req.body.member.id == req.params.id){
+        res.status(405).send("Error Invalid Credentials")
+        return
+    }
   MemberModel.findById(req.params.id,(err,doc)=>{
       if(err){
           res.status(400).send("Error Finidng the Member")
