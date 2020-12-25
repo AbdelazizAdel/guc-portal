@@ -44,10 +44,11 @@ router.get('/schedule', async (req, res)=>{
 
 router.post('/replacement/request', async (req, res) => {
     try{
-        let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId + 1;
+        let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId;
         if(requestId === undefined){
             requestId = 1;
         }
+        requestId++;
         await MetaDate.updateOne({'sequenceName' : 'request'}, {'lastId' : requestId});
         let courseId = req.body.courseId;
         let sender = req.body.id;
@@ -95,10 +96,11 @@ router.post('/replacement/request', async (req, res) => {
 
 router.post('/slotlinking/request', [Authentication], async (req, res) => {
     try{
-        let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId + 1;
+        let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId;
         if(requestId === undefined){
             requestId = 1;
         }
+        requestId++;
         await MetaDate.updateOne({'sequenceName' : 'request'}, {'lastId' : requestId});
         let courseId = req.body.courseId;
         let sender = req.body.id;
@@ -144,10 +146,11 @@ router.post('/slotlinking/request', [Authentication], async (req, res) => {
 
 router.post('/changedayoff/request', [Authentication], async (req, res) => {
     try{
-        let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId + 1;
+        let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId;
         if(requestId === undefined){
             requestId = 1;
         }
+        requestId++;
         await MetaDate.updateOne({'sequenceName' : 'request'}, {'lastId' : requestId});
         let senderId = req.body.id;
         let dayOff = req.body.dayOff;
@@ -190,10 +193,11 @@ router.post('/changedayoff/request', [Authentication], async (req, res) => {
 
 router.post('/leave/request', [Authentication], async (req, res) => {
     try{
-        let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId + 1;
+        let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId;
         if(requestId === undefined){
             requestId = 1;
         }
+        requestId++;
         await MetaDate.updateOne({'sequenceName' : 'request'}, {'lastId' : requestId});
         let senderId = req.body.id;
         let duration = req.body.duration;
