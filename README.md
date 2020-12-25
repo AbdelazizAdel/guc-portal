@@ -119,7 +119,7 @@ server/index.js
 	 * Type : GET
 	 * Response : missing hours object. Example : { "missingHours": 12 }
 ***
-### 3. HR Functionalities :
+### 2. HR Functionalities :
 * #### View any staff member attendance record.
 	* Functionality : View any staff member attendance record
 	* Route : /HR/attendance/:year/:month/:staffId
@@ -150,7 +150,7 @@ server/index.js
 	* Response : Text indicating that the salary has been updated successfully
 ***
 
-### 4. HOD Functionalities:
+### 3.1 HOD Functionalities:
 * #### Assign/delete/update a course instructor for each course in his department.
 	* Functionality : Assign a course instructor for a course
 	* Route : /HOD/assignInstructor
