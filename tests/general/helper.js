@@ -1,14 +1,14 @@
 const memberModel = require('../../server/models/StaffMember.js');
-const app = require('../../server/app.js').app;
+const requestModel = require('../../server/models/Request');
 const bcrypt = require('bcrypt');
-const superagent = require('superagent');
 
 async function createMember() {
     const member = new memberModel({
         id : 'ac-1',
         password: 'kcsckcsk',
         email : 'zizo.1999@live.com',
-        loggedIn : false
+        loggedIn : false,
+        dayOff : 6
     });
     const plainTextPassword = member.password;
     const salt = await bcrypt.genSalt();
@@ -20,6 +20,20 @@ async function createMember() {
     };
 }
 
+function createRequest(startDate, duration, type, dayOff) {
+    const request = new requestModel({
+        sender : 'ac-1',
+        reciever : 'ac-2',
+        status : 'accepted',
+        type,
+        startDate,
+        duration,
+        dayOff
+    });
+    return request;
+}
+
 module.exports = {
-    createMember
+    createMember,
+    createRequest
 };

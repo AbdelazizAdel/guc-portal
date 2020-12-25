@@ -92,7 +92,7 @@ router.post('/updateProfile', [authentication], async(req, res) => {
 router.get('/signin', [authentication], async(req, res) => {
     const {member} = req.body;
     const record = {
-        signIn : Date.now()
+        signIn : new Date()
     };
     if(member.attendance == undefined)
         member.attendance = [];
@@ -105,8 +105,8 @@ router.get('/signin', [authentication], async(req, res) => {
 // route for signing out
 //TODO check if authentication is required or not
 router.get('/signout', [authentication], async(req, res) => {
-    const {attendance, id} = req.body.member;
-    const signOutDate = Date.now();
+    let {attendance, id} = req.body.member;
+    const signOutDate = new Date();
     if(attendance === undefined || attendance.length === 0) 
         attendance = [{signOut : signOutDate}];
     else {
@@ -127,7 +127,10 @@ router.get('/signout', [authentication], async(req, res) => {
 
 // route for viewing all attendance records
 router.get('/attendance', [authentication], (req, res) => {
-    res.send(req.body.member.attendance);
+    let {attendance} = req.body.member;
+    if(attendance === undefined)
+        attendance = [];
+    res.send(attendance);
 })
 
 // function which checks for valid year
@@ -137,13 +140,15 @@ function isYearValid(year) {
 
 // function which checks for valid month
 function isMonthValid(month) {
-    return /^(0[0-9]|1[0-1])$/.test(day);
+    return /^(0[0-9]|1[0-1])$/.test(month);
 }
 
 // route for viewing attendance of a specific month
 router.get('/attendance/:year/:month', [authentication], (req, res) => {
     const {attendance} = req.body.member;
-    const {year, month} = req.params;
+    if(attendance == undefined)
+        return res.send([]);
+    let {year, month} = req.params;
     if(!isYearValid(year))
         return res.send('this is not a valid year');
     if(!isMonthValid(month))
@@ -151,7 +156,7 @@ router.get('/attendance/:year/:month', [authentication], (req, res) => {
     year = Number(year);
     month = Number(month);
     let result = [];
-    const curDate = Date.now(), curYear = curDate.getFullYear(), curMonth = curDate.getMonth(), curDay = curDate.getDate();
+    const curDate = new Date(), curYear = curDate.getFullYear(), curMonth = curDate.getMonth(), curDay = curDate.getDate();
     if(year === curYear && month === curMonth) {
         if(curDay >= 11) {
             const start = new Date(year, month, 11).getTime(), end = new Date(year, month, curDay).getTime() + day_ms - 1;
@@ -182,7 +187,7 @@ router.get('/attendance/:year/:month', [authentication], (req, res) => {
 
 // function for getting attendance records based on the current day
 async function getAttendanceRecords(token) {
-    const curDate = Date.now(), curYear = curDate.getFullYear(), curMonth = curDate.getMonth(), curDay = curDate.getDate();
+    const curDate = new Date(), curYear = curDate.getFullYear(), curMonth = curDate.getMonth(), curDay = curDate.getDate();
     let year, month;
     if(curDay >= 11) {
         year = curYear;
@@ -192,7 +197,14 @@ async function getAttendanceRecords(token) {
         year = curMonth == 0 ? curYear - 1 : curYear;
         month = curMonth == 0 ? 11 : curMonth - 1;
     }
-    const records = await superagent.get(`httP://localhost:3000/${year}/${month}`).set('auth_token', token);
+    const response = await superagent.get(`http://localhost:3000/attendance/${year}/${month}`).set('auth_token', token);
+    const records = response.body.map((elem) => {
+        if(elem.signIn != undefined)
+            elem.signIn = new Date(elem.signIn);
+        if(elem.signOut != undefined)
+            elem.signOut = new Date(elem.signOut);
+        return elem;
+    })
     return {
         records,
         startYear : year,
@@ -202,20 +214,19 @@ async function getAttendanceRecords(token) {
 
 // function for determining if the attendance record is valid or not
 function isValidRecord(record) {
-    let ans = true;
     const{signIn, signOut} = record;
     if(signIn == undefined || signOut == undefined)
-        ans = false;
+        return false;
     const year = signIn.getFullYear(), month = signIn.getMonth(), day = signIn.getDate();
     const min = new Date(year, month, day, 7).getTime(), max = new Date(year, month, day, 19).getTime();
     if(signIn.getTime() > max || signOut.getTime() < min)
-        ans = false;
-    return ans;
+        return false;
+    return true;
 }
 
 // function for determining the number of days passed in the current month (GUC month)
 function numOfDays(startYear, startMonth) {
-    const curDate = Date.now(), curDay = curDate.getDate();
+    const curDate = new Date(), curDay = curDate.getDate();
     let numDays;
     if(curDay >= 11)
         numDays = curDay - 11 + 1;
@@ -236,11 +247,11 @@ function createDays(firstDay, numDays) {
 
 // route for getting missing days
 router.get('/missingDays', [authentication], async(req, res) => {
-    const {dayoff, id} = req.body.member;
+    const {dayOff, id} = req.body.member;
     const {records, startYear, startMonth} = await getAttendanceRecords(req.headers.auth_token);
     const numDays = numOfDays(startYear, startMonth);
     const firstDay = new Date(startYear, startMonth, 11).getTime();
-    const days = createDays(firstDay, numDays);
+    let days = createDays(firstDay, numDays);
     for(let i = 0; i < records.length; i++) {
         if(!isValidRecord(records[i]))
             continue;
@@ -250,9 +261,21 @@ router.get('/missingDays', [authentication], async(req, res) => {
     const requests = await requestModel.find({sender : id, status : 'accepted'}).or([
         {type : 'annual'}, {type : 'accidental'}, {type : 'sick'}, {type : 'maternity'}
     ]);
+    const compensationLeaves = await requestModel.find({
+        sender : id,
+        status : 'accepted',
+        type : 'compensation',
+        startDate : {$gte : new Date(firstDay), $lt : new Date(firstDay + numDays * day_ms)},
+        dayOff :  {$gte : new Date(firstDay), $lt : new Date(firstDay + numDays * day_ms)}
+    });
+    for(let i = 0; i < compensationLeaves.length; i++) {
+        const d = compensationLeaves[i].dayOff, s = compensationLeaves[i].startDate;
+        if(!days[String(new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime())])
+            days[String(new Date(s.getFullYear(), s.getMonth(), s.getDate()).getTime())] = false;
+    }
     for(let i = 0; i < numDays; i++) {
         let date = new Date(firstDay + i * day_ms);
-        if(date.getDay() == 5 || date.getDay() == dayoff)
+        if(date.getDay() == 5 || date.getDay() == dayOff)
             days[String(date.getTime())] = false;
         else {
             let acceptedRequests = requests.filter((elem) => {
@@ -276,28 +299,44 @@ router.get('/missingDays', [authentication], async(req, res) => {
 
 //route for getting missing hours or extra hours
 router.get('/missingHours', [authentication], async(req, res) => {
+    const {dayOff, id} = req.body.member;
     const {records, startYear, startMonth} = await getAttendanceRecords(req.headers.auth_token);
     const numDays = numOfDays(startYear, startMonth);
     const firstDay = new Date(startYear, startMonth, 11).getTime();
     const days = createDays(firstDay, numDays);
     let result = 0, cnt = 0;
     for(let i = 0; i < records.length; i++) {
-        if(!isValidRecord(records[i]))
+        if(!isValidRecord(records[i]) || records[i].signIn.getDay() == 5)
             continue;
         const{signIn, signOut} = records[i];
         const year = signIn.getFullYear(), month = signIn.getMonth(), day = signIn.getDate();
+        const start = new Date(year, month, day, 7), end = new Date(year, month, day, 19);
         days[String(new Date(year, month, day).getTime())] = false;
         const signInTime = Math.max(start.getTime(), signIn.getTime());
         const signOutTime = Math.min(end.getTime(), signOut.getTime());
         const spentTime = (signOutTime - signInTime) / (1000 * 60 * 60);
-        result-= spentTime;
+        result-=spentTime;
+    }
+    const compensationLeaves = await requestModel.find({
+        sender : id,
+        status : 'accepted',
+        type : 'compensation',
+        startDate : {$gte : new Date(firstDay), $lt : new Date(firstDay + numDays * day_ms)},
+        dayOff :  {$gte : new Date(firstDay), $lt : new Date(firstDay + numDays * day_ms)}
+    });
+    let compensatedDayOffs = {};
+    for(let i = 0; i < compensationLeaves.length; i++) {
+        const d = compensationLeaves[i].dayOff;
+        compensatedDayOffs[String(new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime())] = true;
     }
     for(let i = 0; i < numDays; i++) {
-        if(!days[String(firstDay + i * day_ms)])
+        const d = new Date(firstDay + i * day_ms);
+        if((d.getDay() == dayOff && compensatedDayOffs[String(d.getTime())] == true && !days[String(d.getTime())]) ||
+         (d.getDay() != dayOff && d.getDay() != 5 && !days[String(d.getTime())]))
             cnt++;
     }
-    result = result + cnt * 8.24;
-    res.send(result);
+    result = result + cnt * 8.4;
+    res.send({missingHours : result});
 })
 
 module.exports = router;
