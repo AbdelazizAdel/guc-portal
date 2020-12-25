@@ -12,8 +12,9 @@ const RequestScheme = new mongoose.Schema({
     type: {type:String, enum:['ReplacementSlot']}, //not complete, add others when needed
     submissionDate: Date,
     startDate: Date,
+    dayOff : Date,
     duration: Number,
-    slot: Number,
+    slot: String,
     attachmentURL : String
 }, {strict: false, timestamps: true});
 
