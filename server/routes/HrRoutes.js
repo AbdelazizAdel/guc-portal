@@ -15,12 +15,9 @@ router.use(express.json());
 
 //* Add Update or Delete a Location 
 
-
-
 router.route("/opLocation/:id")
 .delete(async(req,res)=>{
-    //Location Model in Body 
-
+  
     LocationModel.findByIdAndDelete(req.params.id, (err,doc)=>{
         if(err) {
             
@@ -38,11 +35,6 @@ router.route("/opLocation/:id")
 
     var body = req.body
     try {
-        const location  = new LocationModel({
-            "name": body.name,
-            "capacity": body.capacity,
-            "type": body.type
-        })
         LocationModel.findByIdAndUpdate(req.params.id,req.body,(err,doc) =>{
             if(err) {
                 res.status(400).send("Couldnt Add Location, try again !");
@@ -58,8 +50,8 @@ router.route("/opLocation/:id")
         res.status(400).send("Couldnt Add Location, Data is invalid !");
         
     }
-   
 })
+
 router.route("/addLocation")
 .post(async(req,res) =>{
 
@@ -85,75 +77,13 @@ router.route("/addLocation")
     }
    
 })
-// * Add update or delete a course
-router.route("/opCourse")
-.delete(async(req, res)=>{
-
-    var courseID = req.body.id
-    CourseModel.findByIdAndRemove(courseID,(err,doc)=>{
-        if(err) return console.log(err);
-        console.log('Course Deleted Successfully');
-        res.status(200).send('Course Deleted Successfully');  
-    });
-    })
-
-.post(async(req, res)=>{
-
-var courseID = req.body.id 
-const body = req.body
-const course = new CourseModel({
-    "id":body.id,
-    "name":body.name,
-    "coordinator": req.body.coordinator,
-    "TAs":body.TAs,
-    "instructors":body.instructors,
-    "numSlots": body.numSlots,
-    "mainDepartment":body.mainDepartment,
-    "teachingDepartments" : body.teachingDepartments
-}
-)
-CourseModel.findByIdAndDelete(courseID,(err,doc) =>{
-    if(err) return console.log(err);
-    else{
-        course.save((err,doc) => {
-            if(err) return console.log(err);
-            console.log("Updated Successfully");
-            res.status(200).send('Course updated Successfully');
-        })
-        
-    }
-})
-
-});
-// * AddCourse
-router.route("/addCourse")
-.post(async(req, res)=>{
-
-    const body = req.body
-    const course = new CourseModel({
-        "id":body.id,
-        "name":body.name,
-        "coordinator": req.body.coordinator,
-        "TAs":body.TAs,
-        "instructors":body.instructors,
-        "numSlots": body.numSlots,
-        "mainDepartment":body.mainDepartment,
-        "teachingDepartments" : body.teachingDepartments
-    }
-    )
-    course.save((err,doc) => {
-        if(err) return console.log(err);
-        console.log("Updated Successfully");
-        res.status(200).send('Course updated Successfully');})
-
-})
 
 // * update or delete a Faculty
-router.route("/opFaculty")
+router.route("/opFaculty/:id")
 .delete(async(req, res)=>{
 
     var FacultyID = req.body.id
-    FacultyModel.findByIdAndRemove(FacultyID,(err,doc)=>{
+    FacultyModel.findByIdAndRemove(req.params.id,(err,doc)=>{
         if(err){ 
             res.status(400).send("Error Deleting Faculty");
             return console.log(err);
@@ -164,33 +94,23 @@ router.route("/opFaculty")
     })
 
 .post(async(req, res)=>{
-const body = req.body
-const facultyID = body.id
-
 const faculty = new FacultyModel({
     "id": body.id,
     "name": body.name,
     "departments": body.departments
 })
 
-FacultyModel.findByIdAndDelete(facultyID,(err,doc)=>{
+FacultyModel.findByIdAndUpdate(req.params.id,req.body,(err,doc)=>{
     if(err){ 
         res.status(400).send('Faculty failed to update');
          return console.log(err);}
 
     else{
-        faculty.save((err,doc) => {
-            if(err){ 
-                res.status(400).send('Faculty failed to update');
-                 return console.log(err);}
-            console.log("Updated Successfully");
             res.status(200).send('Faculty updated Successfully');
+        }
+    })
         })
-        
-    }
 
-})
-})
 // * Add a faculty
 router.route("/addFaculty")
 .post(async(req, res)=>{
@@ -216,16 +136,8 @@ faculty.save((err,doc) =>{
 
 //* Add Delete Update a Department under a faculty
 
-router.route("/opDepartment")
-.post( async(req,res)=>{
 
-    const body = req.body
-    const Dept = body.id
-
-}
-
-)
-
+// * Add A Dept under a faculty 
 router.route("/addDepartment")
 .post( async(req,res)=>{
     // Faculty ID
@@ -233,47 +145,112 @@ router.route("/addDepartment")
 
     const body = req.body
     try {
-        const course = new CourseModel({
-            "id":body.id,
-            "name":body.name,
-            "coordinator": req.body.coordinator,
-            "TAs":body.TAs,
-            "instructors":body.instructors,
-            "numSlots": body.numSlots,
-            "mainDepartment":body.mainDepartment,
-            "teachingDepartments" : body.teachingDepartments
-        }
-        );
+        const Dept = new DepartmentModel({
+            "id": body.id,
+            "name": body.name,
+            "HOD": body.HOD
+        });
         FacultyModel.findById(body.id,(err,doc) => {
             if(err){
                 res.status(400).send("Error Locating the department")
                 return
             }
             else{
-                doc.departments.push(course.id)
-                course.save((err,doc) => {
+                Dept.save((err,doc) => {
                     if(err) return console.log(err);
-                    console.log("Updated Successfully");
-                    res.status(200).send('Added');})
-
-                
+                    console.log("Added Successfully");
+                    res.status(200).send('Added');
+                    doc.departments.push(course.id)
+                }); 
             }
         })
-
-        
     } catch (error) {
         res.status(400).send("Error in Input Data")
         return
     }
-  
+})
+// * Delete Update a Department under a faculty
+router.route("/opDepartment/:id")
+.post(
+    async(req, res) =>{
+        DepartmentModel.findByIdAndUpdate(req.params.id,req.body,(err,doc)=>{
+            if(err){ 
+                res.status(400).send('Department failed to update');
+                 return console.log(err);}
+        
+            else{
+                    res.status(200).send('Department updated Successfully');
+                }
 
-
-  
-
-
-    
-
-
-}
-
+        })
+})
+.delete(
+    async(req, res) =>{
+        DepartmentModel.findByIdAndDelete(req.params.id,(err,doc) => {
+            if (err){
+                res.status(400).send("Failed to Delete Department")
+                return
+            }
+            else{
+                console.log('Department Deleted Successfully');
+                res.status(200).send('Department Deleted Successfully');
+            }
+        })
+    }
 )
+
+// * Add update or delete a course
+
+router.route("/opCourse/:id")
+.delete(async(req, res)=>{
+    CourseModel.findByIdAndDelete(req.params.id,(err,doc)=>{
+        if(err) return console.log(err);
+        console.log('Course Deleted Successfully');
+        res.status(200).send('Course Deleted Successfully');  
+    });
+    })
+
+.post(async(req, res)=>{
+
+CourseModel.findByIdAndUpdate(req.params.id,req.body,(err,doc) => {
+    if(err){
+        res.status(400).send("Coulndt Update Course");
+    }
+    else{
+        res.status(200).send("Updated Course Successfully");
+    }
+})
+});
+// * AddCourse
+router.route("/addCourse")
+.post(async(req, res)=>{
+
+    const body = req.body
+    const course = new CourseModel({
+        "id":body.id,
+        "name":body.name,
+        "coordinator": req.body.coordinator,
+        "TAs":body.TAs,
+        "instructors":body.instructors,
+        "numSlots": body.numSlots,
+        "mainDepartment":body.mainDepartment,
+        "teachingDepartments" : body.teachingDepartments
+    }
+    )
+    course.save((err,doc) => {
+        if(err){   
+            res.status(400).send('Course Deleted Successfully');
+            return console.log(err);}
+        else
+        { 
+        console.log("Updated Successfully");
+        res.status(200).send('Course updated Successfully');
+        }
+    
+    }
+        )
+
+})
+
+
+
