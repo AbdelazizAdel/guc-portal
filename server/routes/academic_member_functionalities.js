@@ -8,7 +8,7 @@ const Attendance = require('../models/Attendance.js');
 const Course = require('../models/Course.js');
 const Faculty = require('../models/Faculty.js');
 const Replacement = require('../models/ReplacementSlot.js');
-const Authentication = require('./middleware.js');
+const Authentication = require('./middleware.js').authentication;
 const MetaData = require('../models/metaData.js');
 const { request } = require('express');
 
