@@ -208,7 +208,7 @@ router.get('/viewChangeDayOffRequests', [authentication], async (req, res)=>{
     try{
         let HOD_Id = req.body.member.id;
 
-        let requests = await RequestModel.find({receiver: HOD_Id, type: "ChangeDayOff"});
+        let requests = await RequestModel.find({receiver: HOD_Id, type: "DayOff"});
         let results = []
         for(request of requests)
             results.push(request);
@@ -252,7 +252,7 @@ router.post('/request', [authentication], async(req, res)=>{
             let request = await RequestModel.findOneAndUpdate({id: requestId}, {status: status});
             let duration;
             switch(request.type){
-                case "ChangeDayOff":
+                case "DayOff":
                     let newDayOff = request.startDate.getDate()-1;
                     await StaffMemberModel.findOneAndUpdate({id: request.sender},  
                         {dayOff: newDayOff, $push: {notifications:'Your change-day off request has been accepted'}});
@@ -292,7 +292,7 @@ router.post('/request', [authentication], async(req, res)=>{
                 request = await RequestModel.findOneAndUpdate({id: requestId}, {status: status});
             }
             switch(request.type){
-                case "ChangeDayOff":       
+                case "DayOff":       
                     let newDayOff = request.startDate.getDay();
                     await StaffMemberModel.findOneAndUpdate({id: request.sender},  
                         {$push: {notifications:'Your change-day off request has been rejected'}});

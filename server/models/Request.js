@@ -6,10 +6,11 @@ const RequestScheme = new mongoose.Schema({
     id: {type: String, unique: true, required: true},
     sender: String,
     receiver: String,
-    status: String,
+    status: {type:String, enum:['Accepted', 'Rejected', 'Pending']},
     content: String,
     comment: String,
-    type: String,
+    type: {type:String, enum:['ReplacementSlot', 'AccidentalLeave', 'AnnualLeave', 'SickLeave', 'MaternityLeave', 'CompensationLeave',
+    'SlotLinking', 'DayOff']}, //not complete, add others when needed
     submissionDate: Date,
     startDate: Date,
     dayOff : Date,

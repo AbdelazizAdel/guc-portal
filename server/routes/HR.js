@@ -7,7 +7,6 @@ const {authentication} = require('./middleware');
 const superagent = require('superagent');
 const StaffMember = require('../models/StaffMember');
 const Joi = require('joi');
-const { func } = require('joi');
 const router = express.Router();
 const day_ms = 86400000; // number of milliseconds in a day
 

@@ -39,10 +39,10 @@ beforeEach(async () => {
 });
 
 
-// afterAll(async()=>{
-//     await memberModel.deleteMany();
-//     await requestModel.deleteMany();
-// })
+afterAll(async()=>{
+    await memberModel.deleteMany();
+    await requestModel.deleteMany();
+})
 
 async function createCourse(courseId, courseName){
     const courseA = new CourseModel({
@@ -102,7 +102,7 @@ describe('testing HOD requests', ()=>{
             receiver: 'ac-1',
             status: 'pending',
             content: 'day off',
-            type: "ChangeDayOff",
+            type: "DayOff",
             dayOff : 5
         }) 
         await req.save();
@@ -144,7 +144,7 @@ describe('testing accept/reject requests',()=>{
         receiver: 'ac-1',
         status: 'pending',
         content: 'day off',
-        type: "ChangeDayOff",
+        type: "DayOff",
         startDate: new Date(),
         dayOff : 5
     }) 
