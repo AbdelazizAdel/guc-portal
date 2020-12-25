@@ -119,3 +119,33 @@ server/index.js
 	 * Type : GET
 	 * Response : missing hours object. Example : { "missingHours": 12 }
 ***
+### 3. HR Functionalities :
+* #### View any staff member attendance record.
+	* Functionality : View any staff member attendance record
+	* Route : /HR/attendance/:year/:month/:staffId
+	* Type : GET
+	* Response : Array of attendance objects. Example attendance object :
+	{ "signIn": "2020-12-25T12:52:51.344Z",
+  "SignOut": "2020-11-25T12:52:51.344Z" } 
+***
+
+* #### View staff members with missing hours.
+	* Functionality : View staff members with missing hours
+	* Route : /HR/StaffMembersWithMissingHours
+	* Type : GET
+	* Response : Array of objects {id: member.id, name: member.name, missingHours: hours}
+***
+
+* #### View staff members with missing days.
+	* Functionality : View staff members with missing days
+	* Route : /HR/StaffMembersWithMissingDays
+	* Type : GET
+	* Response : Array of objects {id: member.id, name: member.name, missingDays: days}
+***
+
+* #### Update the salary of a staff member.
+	* Functionality : Update the salary of a staff member
+	* Route : /HR/updateSalary
+	* Type : PUT
+	* Response : Text indicating that the salary has been updated successfully
+***
