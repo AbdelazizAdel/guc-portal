@@ -31,7 +31,10 @@ server/index.js
 
 * ####  Log in with a unique email and a password.
 	* Functionality : logging in with email and password
-	* Route : __/login__
+	* Route : /login
 	* Request type : POST
-	* Request body :__{"email" : "anything@example.com", "password" : "password"}__
+	* Request body :{
+    "email": "anything@example.com",
+    "password": "password"
+}
 	* Response : Text indicating whether the user logged in successfully or not
