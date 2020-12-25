@@ -11,7 +11,6 @@ const metaData = require('../models/metaData');
 const auth = require('../routes/middleware.js').authentication;
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const express = require('express');
 const memberModel = require('../models/StaffMember');
 const requestModel = require('../models/Request');
 const {authentication} = require('./middleware');
@@ -380,7 +379,7 @@ router.route("/addMember",auth)
    const body  = req.body
    if(body.officeLoc != undefined){
 
-    LocationModel.findOne({"id":officeLoc},body.officeLoc, (err,doc)=>{
+    LocationModel.findOne({"id":officeLoc},body.officeLoc, async (err,doc)=>{
         var newCapacity = 0;
         if(err){
             res.status(400).send("Room Doesnt exist")
@@ -392,7 +391,9 @@ router.route("/addMember",auth)
                 try {
                     newCapacity = doc.capacity -- ;
 
-                    const id = await metaData.find({"sequenceName": 'ac'})[0].lastId;
+                    var idarr = await metaData.find({"sequenceName": 'ac'});
+
+                    var id = idarr[0].lastId;
                     if(id === undefined){
                         id = 1;
                     }
