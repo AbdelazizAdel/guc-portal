@@ -17,8 +17,8 @@ router.use(express.json());
 
 
 //* Add Update or Delete a Location 
-
-router.route("/opLocation/:id")
+//* Update or delete
+router.route("/opLocation/:id",auth)
 .delete(async(req,res)=>{
     if(!isHR(req.body.member.id)){
         res.status(405).send("Error Invalid Credentials")
@@ -143,10 +143,16 @@ router.route("/addFaculty",auth)
         return
     }
 const body = req.body
-const facultyID = body.id
+
+const id = await metaData.find({"sequenceName": 'fa'})[0].lastId;
+if(id === undefined){
+    id = 1;
+}
+id++;
+await metaData.updateOne({"sequenceName": 'fa'},{'lastId' : id});
 
 const faculty = new FacultyModel({
-    "id": body.id,
+    "id": id,
     "name": body.name,
     "departments": body.departments
 })
@@ -176,8 +182,14 @@ router.route("/addDepartment",auth)
     }
     const body = req.body
     try {
+        const id = await metaData.find({"sequenceName": 'dp'})[0].lastId;
+        if(id === undefined){
+            id = 1;
+        }
+        id++;
+       await metaData.updateOne({"sequenceName": 'dp'},{'lastId' : id});
         const Dept = new DepartmentModel({
-            "id": body.id,
+            "id": id,
             "name": body.name,
             "HOD": body.HOD
         });
@@ -275,10 +287,16 @@ router.route("/addCourse",auth)
         res.status(405).send("Error Invalid Credentials")
         return
     }
+    const id = await metaData.find({"sequenceName": 'co'})[0].lastId;
+    if(id === undefined){
+        id = 1;
+    }
+    id++;
+   await metaData.updateOne({"sequenceName": 'co'},{'lastId' : id});
 
     const body = req.body
     const course = new CourseModel({
-        "id":body.id,
+        "id":id,
         "name":body.name,
         "coordinator": req.body.coordinator,
         "TAs":body.TAs,
@@ -364,6 +382,7 @@ router.route("/addMember",auth)
             if (doc.capacity > 0 && doc.type == "office"){
                 try {
                     newCapacity = doc.capacity -- ;
+
                     const id = await metaData.find({"sequenceName": 'ac'})[0].lastId;
                     if(id === undefined){
                         id = 1;
