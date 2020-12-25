@@ -827,5 +827,5 @@ router.put('/updateSalary', [authentication], async(req, res)=>{
     }
 })
 
-
+ 
 module.exports = router;
