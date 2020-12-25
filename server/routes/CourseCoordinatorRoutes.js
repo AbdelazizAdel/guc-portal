@@ -116,19 +116,22 @@ router.patch('/coordinator/courses/:courseId',[authentication],async (req,res)=>
     if(request.status !== 'Pending'){
         return res.status(400).send('You can\'t modify this request!!');
     }
+    if(request.type !== 'SlotLinking'){
+        return res.status(400).send('The request provided is not slot linking');
+    }
     const slot = await Slot.findOne({'id':`${request.slot}`});
     if(slot.course != courseId){
         return res.status(400).send('Bad request! the slot provided in the request doesn\'t match the course ');
     }
-    if(requestResponse == 'accepted'){
-        const query1 = Request.updateOne({'id':`${requestId}`},{'status':'accepted'});
+    if(requestResponse == 'Accepted'){
+        const query1 = Request.updateOne({'id':`${requestId}`},{'status':'Accepted'});
         const query2 = Slot.updateOne({'id':`${request.slot}`},{'instructor': `${request.sender}`});
         Promise.allSettled([query1,query2]).then((result)=>{
             return res.status(200).send('Request has been successfully accepted!!');
         })
     }
     else{
-        await  Request.updateOne({'id':`${requestId}`},{'status':'rejected'});
+        await  Request.updateOne({'id':`${requestId}`},{'status':'Rejected'});
         return res.status(200).send('Request has been successfully rejected!!');
     }
 })
