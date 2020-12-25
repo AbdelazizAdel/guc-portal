@@ -11,10 +11,10 @@ router.post('/request',async(req,res)=>{
         {
             sender:req.body.sender,
             receiver:req.body.receiver,
-            status:'pending',
+            status:'Pending',
             content:req.body.content,
             submissionDate:Date.now(),
-            type:'slot linking',
+            type:'SlotLinking',
             slot:req.body.slot
         }
     );
@@ -60,7 +60,7 @@ router.get('/coordinator/:coordinatorId/courses/:courseId/slot-linking-requests'
     for(let i = 0;i < slots.length;i++){
     cond.push({'slot':`${slots[i].id}`});
     }
-    const requests = await Request.find({'status':'pending',type:'slot linking'}).or(cond);
+    const requests = await Request.find({'status':'Pending',type:'SlotLinking'}).or(cond);
     console.log(requests);
     let queries = [];
     for(let i = 0;i < requests.length;i++){
@@ -113,7 +113,7 @@ router.patch('/coordinator/:coordinatorId/courses/:courseId',[authentication],as
     if(request == null){
         return res.status(404).send('Request not found!!');
     }
-    if(request.status !== 'pending'){
+    if(request.status !== 'Pending'){
         return res.status(400).send('You can\'t modify this request!!');
     }
     const slot = await Slot.findOne({'id':`${request.slot}`});
