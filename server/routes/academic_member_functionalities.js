@@ -4,20 +4,19 @@ const Department = require('../models/Department.js');
 const Member = require('../models/StaffMember.js');
 const Request = require('../models/Request.js');
 const Slot = require('../models/Slot.js');
-const Attendance = require('../models/Attendance.js');
 const Course = require('../models/Course.js');
 const Faculty = require('../models/Faculty.js');
 const Replacement = require('../models/ReplacementSlot.js');
-const Authentication = require('./middleware.js');
+const Authentication = require('./middleware.js').authentication;
 const MetaData = require('../models/metaData.js');
 
 router.use(express.json());
 
-router.get('/schedule', [Authentication], async (req, res)=>{
+router.get('/schedule', async (req, res)=>{
 
     try{
 
-        let staffId = req.body.member.id;
+        let staffId = req.body.id;
 
         let schedule = [];
 
@@ -43,11 +42,11 @@ router.get('/schedule', [Authentication], async (req, res)=>{
     }
 });
 
-router.post('/replacement/request', [Authentication], async (req, res) => {
+router.post('/replacement/request', async (req, res) => {
     try{
         let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId;
         let courseId = req.body.courseId;
-        let sender = req.body.member.id;
+        let sender = req.body.id;
         receiver = req.body.receiver;
         if(courseId === undefined){
             res.status(404).send('Please choose a course');
@@ -69,7 +68,7 @@ router.post('/replacement/request', [Authentication], async (req, res) => {
         }
         let request = new Request({
             id: requestId,
-            sender: req.body.member.id,
+            sender: req.body.id,
             receiver: receiver,
             status: 'Pending',
             content: req.body.content,
@@ -94,7 +93,7 @@ router.post('/slotlinking/request', [Authentication], async (req, res) => {
     try{
         let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId;
         let courseId = req.body.courseId;
-        let sender = req.body.member.id;
+        let sender = req.body.id;
         if(courseId === undefined){
             res.status(404).send('Please choose a course');
         }
@@ -138,7 +137,7 @@ router.post('/slotlinking/request', [Authentication], async (req, res) => {
 router.post('/changedayoff/request', [Authentication], async (req, res) => {
     try{
         let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId;
-        let senderId = req.body.member.id;
+        let senderId = req.body.id;
         let dayOff = req.body.dayOff;
 
         if(dayOff === undefined || dayOff < 1 || dayOff > 7){
@@ -180,7 +179,7 @@ router.post('/changedayoff/request', [Authentication], async (req, res) => {
 router.post('/leave/request', [Authentication], async (req, res) => {
     try{
         let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId;
-        let senderId = req.body.member.id;
+        let senderId = req.body.id;
         let duration = req.body.duration;
         let startDate = req.body.startDate;
         let dayOff = req.body.dayOff;
