@@ -55,6 +55,7 @@ server/index.js
             * Parameters : id refers to the instructor's Id
             * Response : an array of objects where each object has 2 attributes courseId and course name which indicates the courses this instructor was originally assigned to.
             * Example: {"courses":[{"courseId":"course1","courseName":"Advanced Computer Lab"}]}
+            ***
         * 2nd route name : ```/courses/:courseId/slots-assignment```
             * Functionality : returns Information about all the slots for this course 
             * Request type : **GET**
@@ -71,12 +72,31 @@ server/index.js
             * Parameters : instructorId refers to an instructor of some course.
             * Response : an array of objects where each object consists of memberId and memberName referring to the staff members' ids and names in that department
             * Example : {"staffMembers":[{"memberId" : "value1", "memberName" : "Mohammed Ashry"}, {"memberId" : "value2", "memberName" : "Noura Sadek"}]}
+            ***
         * 2nd route name : ```/staff-members/:instructorId/department/:staffMemberId```
             * Functionality : return information about a specific academic member in the instructor's department
             * Request type : **GET**
             * Parameters :
                 * instructorId refers to the id of an instructor of some course
                 * staffMemberId refers to the id of the academic member that the instructor wants to view their information
+            * Response : An object containing information about the academic member
+            * Example : {"memberName" : "Mohammed Ashry", "memberEmail" : "anything@example.com", "memberGender" : "male", "memberDayoff": 2, "memberOficeLoc" : "C7.305", memberDepartment : "value1"}
+***
+* ####  View all the staff in his/her courses along with their profiles
+    * Routes:
+        * 1st route name: ```/staff-members/:instructorId/courses```
+            * Functionality : returns per course that the instructor is assigned for all the academic members names and ids that teach these course
+            * Request type : **GET**
+            * Parameters : instructorId refers to the id of an instructor of some courses
+            * Response : multiple of objects where each object carries information about a different course whether this course has teaching assistants assigned to it or not,and the  Ids and names of all instructors and teaching assistants in this course
+            * Example : {"Advanced Computer Lab" :{ "TAsAssigned" : true, "TAs":[{"id":"value1","name": "Mohammed Ashry"}, {"id":"value2","name": "Nora Sadek"}],instructors:[{"id":"value3", "name" : "Mervat AbuElkheir"}]}}
+            ***
+        * 2nd route name: ```/instructors/:instructorId/staff-members/:staffMemberId```
+            * Functionality : return information about a specific academic member in one of the instructor's courses
+            * Request type : **GET**
+            * Parameters :
+                * instructorId refers to the id of an instructor of some course
+                * staffMemberId refers to the id of the academic member that the instructor wants to view their information 
             * Response : An object containing information about the academic member
             * Example : {"memberName" : "Mohammed Ashry", "memberEmail" : "anything@example.com", "memberGender" : "male", "memberDayoff": 2, "memberOficeLoc" : "C7.305", memberDepartment : "value1"}
 ***
