@@ -25,7 +25,7 @@ router.route("/opLocation/:id")
         return
     }
   
-    LocationModel.findByIdAndDelete(req.params.id, (err,doc)=>{
+    LocationModel.findOneAndDelete({"id":id},req.params.id, (err,doc)=>{
         if(err) {
             
             res.status(400).send("Couldnt Find a Location");
@@ -46,7 +46,7 @@ router.route("/opLocation/:id")
 
     var body = req.body
     try {
-        LocationModel.findByIdAndUpdate(req.params.id,req.body,(err,doc) =>{
+        LocationModel.findByOneAndUpdate({"id":id},req.params.id,req.body,(err,doc) =>{
             if(err) {
                 res.status(400).send("Couldnt Add Location, try again !");
                 return
@@ -63,13 +63,13 @@ router.route("/opLocation/:id")
     }
 })
 
-router.route("/addLocation")
+router.route("/addLocation",auth)
 .post(async(req,res) =>{
 
-    // if(!isHR(req.body.member.id)){
-    //     res.status(405).send("Error Invalid Credentials")
-    //     return
-    // }
+    if(!isHR(req.body.member.id)){
+        res.status(405).send("Error Invalid Credentials")
+        return
+    }
 
     var body = req.body
     try {
@@ -103,7 +103,7 @@ router.route("/opFaculty/:id",auth)
     }
 
     var FacultyID = req.body.id
-    FacultyModel.findByIdAndRemove(req.params.id,(err,doc)=>{
+    FacultyModel.findOneAndRemove({"id":id},req.params.id,(err,doc)=>{
         if(err){ 
             res.status(400).send("Error Deleting Faculty");
             return console.log(err);
@@ -124,7 +124,7 @@ const faculty = new FacultyModel({
     "departments": req.body.departments
 })
 
-FacultyModel.findByIdAndUpdate(req.params.id,req.body,(err,doc)=>{
+FacultyModel.findOneAndUpdate({"id":req.params.id},req.body,(err,doc)=>{
     if(err){ 
         res.status(400).send('Faculty failed to update');
          return console.log(err);}
@@ -181,7 +181,7 @@ router.route("/addDepartment",auth)
             "name": body.name,
             "HOD": body.HOD
         });
-        FacultyModel.findById(body.id,(err,doc) => {
+        FacultyModel.find({"id":faculyId},(err,doc) => {
             if(err){
                 res.status(400).send("Error Locating the department")
                 return
@@ -209,7 +209,7 @@ router.route("/opDepartment/:id",auth)
             res.status(405).send("Error Invalid Credentials")
             return
         }
-        DepartmentModel.findByIdAndUpdate(req.params.id,req.body,(err,doc)=>{
+        DepartmentModel.findOneAndUpdate({"id":req.params.id},req.body,(err,doc)=>{
             if(err){ 
                 res.status(400).send('Department failed to update');
                  return console.log(err);}
@@ -226,7 +226,7 @@ router.route("/opDepartment/:id",auth)
             res.status(405).send("Error Invalid Credentials")
             return
         }
-        DepartmentModel.findByIdAndDelete(req.params.id,(err,doc) => {
+        DepartmentModel.findOneAndDelete({"id":req.params.id},(err,doc) => {
             if (err){
                 res.status(400).send("Failed to Delete Department")
                 return
@@ -247,7 +247,7 @@ router.route("/opCourse/:id",auth)
         res.status(405).send("Error Invalid Credentials")
         return
     }
-    CourseModel.findByIdAndDelete(req.params.id,(err,doc)=>{
+    CourseModel.findOneAndDelete({"id":req.params.id},(err,doc)=>{
         if(err) return console.log(err);
         console.log('Course Deleted Successfully');
         res.status(200).send('Course Deleted Successfully');  
@@ -259,9 +259,9 @@ router.route("/opCourse/:id",auth)
         res.status(405).send("Error Invalid Credentials")
         return
     }
-CourseModel.findByIdAndUpdate(req.params.id,req.body,(err,doc) => {
+CourseModel.findOneAndUpdate({"id":req.params.id},req.body,(err,doc) => {
     if(err){
-        res.status(400).send("Coulndt Update Course");
+        res.status(400).send("Couldn't Update Course");
     }
     else{
         res.status(200).send("Updated Course Successfully");
@@ -308,7 +308,7 @@ router.route("/opStaffMemeber/:id",auth)
         return
     }
 
-    MemberModel.findByIdAndUpdate(req.params.id,req.body, (err,doc)=>{
+    MemberModel.findOneAndUpdate({"id":req.params.id},req.body, (err,doc)=>{
         if(err){
             res.status(400).send("Error Updating Staff Member");
             return ;
@@ -321,7 +321,7 @@ router.route("/opStaffMemeber/:id",auth)
 })
 
 .delete(async(req, res)=>{
-    MemberModel.findByIdAndDelete(req.params.id,(err,doc)=>{
+    MemberModel.findOneAndDelete({"id":req.params.id},(err,doc)=>{
         if(err){
             res.status(400).send("Error Deleteing Staff Member! It might Not Exist");
             return ;
@@ -352,7 +352,9 @@ router.route("/addMember",auth)
   
    const body  = req.body
    if(body.officeLoc != undefined){
-    LocationModel.findById(body.officeLoc, (err,doc)=>{
+
+    LocationModel.findOne({"id":officeLoc},body.officeLoc, (err,doc)=>{
+        var newCapacity = 0;
         if(err){
             res.status(400).send("Room Doesnt exist")
             return ;
@@ -361,13 +363,14 @@ router.route("/addMember",auth)
         else{
             if (doc.capacity > 0 && doc.type == "office"){
                 try {
+                    newCapacity = doc.capacity -- ;
                     const id = await metaData.find({"sequenceName": 'ac'})[0].lastId;
                     if(id === undefined){
                         id = 1;
                     }
                     id++;
                    await metaData.updateOne({"sequenceName": 'ac'},{'lastId' : id});
-
+                    
                     const StaffMember = new StaffMemberSchema({
                         "id":id,
                         "email":body.email,
@@ -390,9 +393,19 @@ router.route("/addMember",auth)
                                res.status(400).send("Error in Adding The Member")
                            }
                            else{
-                            res.status(200).send("Successfully Added The Member")
+                            LocationModel.updateOne({"id":officeLoc},{"capacity":newCapacity},(err,doc)=>{
+                                if(err){
+                                    res.status(400).send("Error in Adding The Member")
+                                }
+                                else{
+                                    res.status(200).send("Successfully Added The Member")
+                                   }
+                           })
+                            
                            }
                        })
+                       
+                       
                        
                    } catch (error) {
                        res.status(400).send("Error In Data Form, please check again")
@@ -419,7 +432,7 @@ router.route("/addSignIn/:id",auth)
     return
 }
 
-  MemberModel.findById(req.params.id,(err,doc)=>{
+  MemberModel.findOne({"id":req.params.id},(err,doc)=>{
       if(err){
           res.status(400).send("Error Finidng the Member")
           return
@@ -449,7 +462,7 @@ router.route("/addSignOut/:id",auth)
         return
     }
 
-    MemberModel.findById(req.params.id,(err,doc)=>{
+    MemberModel.findOne({"id":req.params.id},(err,doc)=>{
         if(err){
             res.status(400).send("Error Finidng the Member")
             return
@@ -484,7 +497,7 @@ router.route("/addAttendance/:id",auth)
         res.status(405).send("Error Invalid Credentials")
         return
     }
-  MemberModel.findById(req.params.id,(err,doc)=>{
+  MemberModel.findOne({"id":req.params.id},(err,doc)=>{
       if(err){
           res.status(400).send("Error Finidng the Member")
           return
