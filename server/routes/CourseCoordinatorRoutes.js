@@ -133,9 +133,9 @@ router.patch('/coordinator/:coordinatorId/courses/:courseId',[authentication],as
     }
 });
 
-router.post('/slot/add', async (req,res)=>{
+router.post('/slot/add', [authentication], async (req,res)=>{
     try {
-        let slotId = await MetaData.find().and([{'sequenceName':`slot`}]).lastId;
+        let slotId = await MetaData.find({'sequenceName':`slot`}).lastId;
         let sender = req.body.member.id;
         let courseId = req.body.course;
         let instructorId = req.body.instructor;
@@ -154,12 +154,12 @@ router.post('/slot/add', async (req,res)=>{
             res.status(404).send('enter slot instructor id'); 
         }
         
-        let courseInstructor = course.instructors.filter((instructor) => {
+        let courseInstructor = course.TAs.filter((instructor) => {
             return instructor === instructorId;
         });
         
         const responnse = await Course.updateOne({id : courseId}, {numSlots : course.numSlots + 1}); //not sure
-
+        
         slot = new Slot({
             'id': slotId,
             'day': req.body.day,
@@ -178,7 +178,7 @@ router.post('/slot/add', async (req,res)=>{
     }
 });
 
-router.delete('/slot/delete', async (req,res)=>{
+router.delete('/slot/delete', [authentication], async (req,res)=>{
     try {
         let slotId = req.body.slot;
         let sender = req.body.member.id;
@@ -207,7 +207,7 @@ router.delete('/slot/delete', async (req,res)=>{
     }
 });
 
-router.update('slot/update', async (req, res) => {
+router.update('slot/update', [authentication], async (req, res) => {
     try {
         let slotId = req.body.slot;
         let sender = req.body.member.id;
