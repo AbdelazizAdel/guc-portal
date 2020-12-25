@@ -206,7 +206,7 @@ server/index.js
 	 * Response : Array of Dates. Example :
 	 [ "2020-12-25T12:52:51.344Z",
   "2020-11-25T12:52:51.344Z" ]
-  ***
+***
   * #### View if they are having missing hours or extra hours.
 	* Functionality : viewing missing hours
 	 * Route : /missingHours
@@ -223,7 +223,7 @@ server/index.js
 	* Response : Array of attendance objects. Example attendance object :
 	{ "signIn": "2020-12-25T12:52:51.344Z",
   "SignOut": "2020-11-25T12:52:51.344Z" } 
- ***
+***
  * #### View if they have missing days. Missing days are days where the staff member don't have any attendance record, is not a Friday nor his/her day off, and there is no accepted leave for this day.
  
 	 * Functionality : viewing missing days
@@ -232,10 +232,10 @@ server/index.js
 	 * Response : Array of Dates. Example :
 	 [ "2020-12-25T12:52:51.344Z",
   "2020-11-25T12:52:51.344Z" ]
-  ***
+***
   * #### View if they are having missing hours or extra hours.
 	* Functionality : viewing missing hours
 	 * Route : /missingHours
 	 * Type : GET
 	 * Response : missing hours object. Example : { "missingHours": 12 }
-	***
+***
