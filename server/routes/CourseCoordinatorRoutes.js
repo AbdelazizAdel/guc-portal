@@ -207,7 +207,7 @@ router.delete('/slot/delete', [authentication], async (req,res)=>{
     }
 });
 
-router.update('slot/update', [authentication], async (req, res) => {
+router.post('slot/update', [authentication], async (req, res) => {
     try {
         let slotId = req.body.slot;
         let sender = req.body.member.id;
