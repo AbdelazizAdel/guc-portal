@@ -167,7 +167,7 @@ server/index.js
     * Functionality : Update a Department 
 	* Route : /opDepartment/:id
 	* Request type : POST
-	* Request body : {name: "Electronics Engineering Sciences"}
+	* Request body : {facultyId:"f1", name: "Electronics Engineering Sciences"}
 	* Response : Text indicating whether the Department was Updated or Not
 	***
     * Functionality : Delete a Department 
@@ -179,7 +179,7 @@ server/index.js
     * Functionality : Add a Department 
 	* Route : /addDepartment
 	* Request type : POST
-	* Request body : {id:"dpt1" name:"CSEN" HOD:"Foobar" }
+	* Request body : {facultyId:"f1", id:"dpt1", name:"CSEN", HOD:"Foobar" }
 	* Response : Text indicating whether the Department was added or Not
 ***
 * ### Add Update or Delete Course under a Department 
@@ -263,6 +263,6 @@ server/index.js
 	* Request type : POST
 	* Request body : {{signIn:"UTC 19:00:00"}, {signIn:"UTC 22:00:00"}}
 	* Response : Text indicating whether the Record was Added or Not
-    
+
 
     
