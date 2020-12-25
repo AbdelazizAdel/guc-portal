@@ -78,7 +78,7 @@ router.post('/replacement/request', async (req, res) => {
             status: 'Pending',
             content: req.body.content,
             comment: req.body.comment,
-            type: 'replacement',
+            type: 'ReplacementSlot',
             submissionDate: submissionDate,
             startDate: startDate,
             duration: req.body.duration,
@@ -113,7 +113,12 @@ router.post('/slotlinking/request', [Authentication], async (req, res) => {
         let senderCourse = course.TAs.filter((TA) => {
             return TA === sender;
         });
-        if(senderCourse.length < 1){
+        let check = senderCourse.length > 0;
+        senderCourse = course.TAs.filter((TA) => {
+            return TA === sender;
+        });
+        check = check | senderCourse.length > 0;
+        if(!check){
             return res.status(404).send('Please choose a valid course');
         }
 
@@ -128,7 +133,7 @@ router.post('/slotlinking/request', [Authentication], async (req, res) => {
             status: 'Pending',
             content: req.body.content,
             comment: req.body.comment,
-            type: 'slot linking',
+            type: 'SlotLinking',
             submissionDate: submissionDate,
             startDate: req.body.startDate,
             duration: req.body.duration,
