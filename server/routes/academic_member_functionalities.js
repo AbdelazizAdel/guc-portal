@@ -44,7 +44,8 @@ router.get('/schedule', async (req, res)=>{
 
 router.post('/replacement/request', async (req, res) => {
     try{
-        let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId;
+        let requestId = await MetaData.find({'sequenceName':`request`});
+        requestId = requestId[0].lastId;
         if(requestId === undefined){
             requestId = 1;
         }
@@ -56,7 +57,8 @@ router.post('/replacement/request', async (req, res) => {
         if(courseId === undefined){
             res.status(404).send('Please choose a course');
         }
-        let senderCourse = await Course.find({'id': courseId})[0].TAs.filter((TA) => {
+        let senderCourse = await Course.find({'id': courseId});
+        senderCourse = senderCourse[0].TAs.filter((TA) => {
             return TA === sender || TA === receiver;
         });
         if(senderCourse.length !== 2){
@@ -96,7 +98,8 @@ router.post('/replacement/request', async (req, res) => {
 
 router.post('/slotlinking/request', [Authentication], async (req, res) => {
     try{
-        let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId;
+        let requestId = await MetaData.find({'sequenceName':`request`});
+        requestId = requestId[0].lastId;
         if(requestId === undefined){
             requestId = 1;
         }
@@ -108,7 +111,8 @@ router.post('/slotlinking/request', [Authentication], async (req, res) => {
             res.status(404).send('Please choose a course');
         }
 
-        let course = await Course.find({'id': courseId})[0];
+        let course = await Course.find({'id': courseId});
+        course = course[0];
 
         let senderCourse = course.TAs.filter((TA) => {
             return TA === sender;
@@ -151,7 +155,8 @@ router.post('/slotlinking/request', [Authentication], async (req, res) => {
 
 router.post('/changedayoff/request', [Authentication], async (req, res) => {
     try{
-        let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId;
+        let requestId = await MetaData.find({'sequenceName':`request`});
+        requestId = requestId[0].lastId;
         if(requestId === undefined){
             requestId = 1;
         }
@@ -164,9 +169,11 @@ router.post('/changedayoff/request', [Authentication], async (req, res) => {
             res.status(404).send('Please enter a valid week day number');
         }
 
-        let sender = await Member.find({'id' : senderId})[0];
+        let sender = await Member.find({'id' : senderId});
+        sender = sender[0];
 
-        let department = await Department.find({'id' : sender.department})[0];
+        let department = await Department.find({'id' : sender.department});
+        department = department[0];
         
         let receiver = department.HOD;
 
@@ -180,7 +187,7 @@ router.post('/changedayoff/request', [Authentication], async (req, res) => {
             status: 'Pending',
             content: req.body.content,
             comment: req.body.comment,
-            type: 'change day off',
+            type: 'ChangeDayOff',
             submissionDate: submissionDate,
             startDate: startDate,
             duration: req.body.duration,
@@ -198,7 +205,8 @@ router.post('/changedayoff/request', [Authentication], async (req, res) => {
 
 router.post('/leave/request', [Authentication], async (req, res) => {
     try{
-        let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId;
+        let requestId = await MetaData.find({'sequenceName':`request`});
+        requestId = requestId[0].lastId;
         if(requestId === undefined){
             requestId = 1;
         }
@@ -210,6 +218,7 @@ router.post('/leave/request', [Authentication], async (req, res) => {
         let dayOff = req.body.dayOff;
         let content = req.body.content;
         let leaveType = req.body.leaveType;
+        let attachmentUrl = req.body.attachmentURL;
 
         let submissionDate = new Date();
 
@@ -229,13 +238,15 @@ router.post('/leave/request', [Authentication], async (req, res) => {
             res.status(404).send('Please enter a valid start date');
         }
 
-        if((leaveType === 'SickLeave' || leaveType === 'MaternityLeave') && content === undefined){
+        if((leaveType === 'SickLeave' || leaveType === 'MaternityLeave') && attachmentUrl === undefined){
             res.status(404).send("Provide the proper documents");
         }
 
-        let sender = await Member.find({'id' : senderId})[0];
+        let sender = await Member.find({'id' : senderId});
+        sender = sender[0];
         
-        let department = await Department.find({'id' : sender.department})[0];
+        let department = await Department.find({'id' : sender.department});
+        department = department[0];
         let receiver = department.HOD;
 
         let startDay = sender.startDay;
@@ -243,10 +254,10 @@ router.post('/leave/request', [Authentication], async (req, res) => {
 
         var months;
         months = (submissionDate.getFullYear() - startDay.getFullYear()) * 12;
-        months = month - startDay.getMonth() + 1;
+        months = months - startDay.getMonth() + 1;
         months += submissionDate.getMonth();
-        if(startDate.getDate() >= 11){
-            month -= 1;
+        if(startDay.getDate() >= 11){
+            months -= 1;
         }
 
         let remainingLeaves = months * 2.5 - leaves;
@@ -292,7 +303,7 @@ router.post('/leave/request', [Authentication], async (req, res) => {
             dayOff : dayOff,
             duration: duration,
             slot: req.body.slot,
-            attachmentURL : req.body.attachmentURL
+            attachmentURL : attachmentUrl
         });
         await request.save();
         res.status(200).send('Change day off request sent successfully');
