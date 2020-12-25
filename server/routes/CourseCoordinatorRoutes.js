@@ -168,7 +168,7 @@ router.post('/slot/add', [authentication], async (req,res)=>{
         let courseInstructor = course.instructors.filter((instructor) => {
             return instructor === instructorId;
         });
-        let check = check | courseInstructor.length > 0;
+        check = check | courseInstructor.length > 0;
         if(!check){
             res.status(404).send('fih moshkla ya mealem');
         }
@@ -238,6 +238,19 @@ router.post('slot/update', [authentication], async (req, res) => {
 
         if(sender !== course.coordinator){
             res.status(404).send('Unauthorized');
+        }
+
+        let courseInstructor = course.TAs.filter((instructor) => {
+            return instructor === instructorId;
+        });
+        let check = courseInstructor.length > 0;
+
+        courseInstructor = course.instructors.filter((instructor) => {
+            return instructor === instructorId;
+        });
+        check = check | courseInstructor.length > 0;
+        if(!check){
+            res.status(404).send('fih moshkla ya mealem');
         }
 
         const updateResponnse = await Slot.updateOne({'id' : slotId}, {
