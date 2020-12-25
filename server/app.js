@@ -8,8 +8,9 @@ app.use(express.json());
 const generalRoutes = require('./routes/general.js');
 //middleware for using the Course Instructor routes
 const courseInstructorRoutes = require('./routes/CourseInstructorRoutes.js');
-
+const HRRoutes = require('./routes/HRRoutes.js');
 app.use(generalRoutes);
+app.use(HRRoutes);
 app.use(courseInstructorRoutes);
 
 

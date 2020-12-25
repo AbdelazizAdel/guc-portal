@@ -5,7 +5,6 @@ const DepartmentModel = require('../models/Department.js');
 const MemberModel = require('../models/StaffMember.js');
 const RequestModel = require('../models/Request.js');
 const SlotModel = require('../models/Slot.js');
-const AttendanceModel = require('../models/Attendance.js');
 const CourseModel = require('../models/Course.js');
 const FacultyModel = require('../models/Faculty.js');
 const LocationModel = require('../models/Location.js')
@@ -20,6 +19,10 @@ router.use(auth)
 
 router.route("/opLocation/:id",auth)
 .delete(async(req,res)=>{
+    if(!isHR(req.body.member.id)){
+        res.status(405).send("Error Invalid Credentials")
+        return
+    }
   
     LocationModel.findByIdAndDelete(req.params.id, (err,doc)=>{
         if(err) {
@@ -35,6 +38,10 @@ router.route("/opLocation/:id",auth)
 
 })
 .post(async(req,res) =>{
+    if(!isHR(req.body.member.id)){
+        res.status(405).send("Error Invalid Credentials")
+        return
+    }
 
     var body = req.body
     try {
@@ -57,6 +64,10 @@ router.route("/opLocation/:id",auth)
 
 router.route("/addLocation",auth)
 .post(async(req,res) =>{
+    if(!isHR(req.body.member.id)){
+        res.status(405).send("Error Invalid Credentials")
+        return
+    }
 
     var body = req.body
     try {
@@ -84,6 +95,10 @@ router.route("/addLocation",auth)
 // * update or delete a Faculty
 router.route("/opFaculty/:id",auth)
 .delete(async(req, res)=>{
+    if(!isHR(req.body.member.id)){
+        res.status(405).send("Error Invalid Credentials")
+        return
+    }
 
     var FacultyID = req.body.id
     FacultyModel.findByIdAndRemove(req.params.id,(err,doc)=>{
@@ -97,10 +112,14 @@ router.route("/opFaculty/:id",auth)
     })
 
 .post(async(req, res)=>{
+    if(!isHR(req.body.member.id)){
+        res.status(405).send("Error Invalid Credentials")
+        return
+    }
 const faculty = new FacultyModel({
-    "id": body.id,
-    "name": body.name,
-    "departments": body.departments
+    "id": req.body.id,
+    "name": req.body.name,
+    "departments": req.body.departments
 })
 
 FacultyModel.findByIdAndUpdate(req.params.id,req.body,(err,doc)=>{
@@ -117,6 +136,10 @@ FacultyModel.findByIdAndUpdate(req.params.id,req.body,(err,doc)=>{
 // * Add a faculty
 router.route("/addFaculty",auth)
 .post(async(req, res)=>{
+    if(!isHR(req.body.member.id)){
+        res.status(405).send("Error Invalid Credentials")
+        return
+    }
 const body = req.body
 const facultyID = body.id
 
@@ -145,6 +168,10 @@ router.route("/addDepartment",auth)
     // Faculty ID
     // A course Object 
 
+    if(!isHR(req.body.member.id)){
+        res.status(405).send("Error Invalid Credentials")
+        return
+    }
     const body = req.body
     try {
         const Dept = new DepartmentModel({
@@ -174,7 +201,12 @@ router.route("/addDepartment",auth)
 // * Delete Update a Department under a faculty
 router.route("/opDepartment/:id",auth)
 .post(
+    
     async(req, res) =>{
+        if(!isHR(req.body.member.id)){
+            res.status(405).send("Error Invalid Credentials")
+            return
+        }
         DepartmentModel.findByIdAndUpdate(req.params.id,req.body,(err,doc)=>{
             if(err){ 
                 res.status(400).send('Department failed to update');
@@ -188,6 +220,10 @@ router.route("/opDepartment/:id",auth)
 })
 .delete(
     async(req, res) =>{
+        if(!isHR(req.body.member.id)){
+            res.status(405).send("Error Invalid Credentials")
+            return
+        }
         DepartmentModel.findByIdAndDelete(req.params.id,(err,doc) => {
             if (err){
                 res.status(400).send("Failed to Delete Department")
@@ -205,6 +241,10 @@ router.route("/opDepartment/:id",auth)
 
 router.route("/opCourse/:id",auth)
 .delete(async(req, res)=>{
+    if(!isHR(req.body.member.id)){
+        res.status(405).send("Error Invalid Credentials")
+        return
+    }
     CourseModel.findByIdAndDelete(req.params.id,(err,doc)=>{
         if(err) return console.log(err);
         console.log('Course Deleted Successfully');
@@ -213,7 +253,10 @@ router.route("/opCourse/:id",auth)
     })
 
 .post(async(req, res)=>{
-
+    if(!isHR(req.body.member.id)){
+        res.status(405).send("Error Invalid Credentials")
+        return
+    }
 CourseModel.findByIdAndUpdate(req.params.id,req.body,(err,doc) => {
     if(err){
         res.status(400).send("Coulndt Update Course");
@@ -226,6 +269,10 @@ CourseModel.findByIdAndUpdate(req.params.id,req.body,(err,doc) => {
 // * AddCourse
 router.route("/addCourse",auth)
 .post(async(req, res)=>{
+    if(!isHR(req.body.member.id)){
+        res.status(405).send("Error Invalid Credentials")
+        return
+    }
 
     const body = req.body
     const course = new CourseModel({
@@ -254,6 +301,10 @@ router.route("/addCourse",auth)
 //* Update / Delete Staff Members
 router.route("/opStaffMemeber/:id",auth)
 .post(async(req, res)=>{
+    if(!isHR(req.body.member.id)){
+        res.status(405).send("Error Invalid Credentials")
+        return
+    }
 
     MemberModel.findByIdAndUpdate(req.params.id,req.body, (err,doc)=>{
         if(err){
@@ -283,6 +334,10 @@ router.route("/opStaffMemeber/:id",auth)
 // * Add a New Staff Member 
 router.route("/addMember",auth)
 .post(async(req,res)=>{
+    if(!isHR(req.body.member.id)){
+        res.status(405).send("Error Invalid Credentials")
+        return
+    }
    // ! Unique Emails
 
    // ! Unique IDs
@@ -291,7 +346,8 @@ router.route("/addMember",auth)
 
    //! NO Full office Locations & NO COURSE ASSIGNMENT
 
-   // TODO Check Extra Info
+   
+  
    const body  = req.body
    if(body.officeLoc != undefined){
     LocationModel.findById(body.officeLoc, (err,doc)=>{
@@ -345,7 +401,15 @@ router.route("/addSignIn/:id",auth)
     // body{
 // signInDate: Date
   //  }
-  //TODO : check ID is diff
+  if(!isHR(req.body.member.id)){
+    res.status(405).send("Error Invalid Credentials")
+    return
+}
+
+  if(req.body.member.id == req.params.id){
+    res.status(405).send("Error Invalid Credentials")
+    return
+}
 
   MemberModel.findById(req.params.id,(err,doc)=>{
       if(err){
@@ -367,6 +431,15 @@ router.route("/addSignIn/:id",auth)
 
 router.route("/addSignOut/:id",auth)
 .post(async(req,res)=>{
+    if(!isHR(req.body.member.id)){
+        res.status(405).send("Error Invalid Credentials")
+        return
+    }
+
+    if(req.body.member.id == req.params.id){
+        res.status(405).send("Error Invalid Credentials")
+        return
+    }
 
     MemberModel.findById(req.params.id,(err,doc)=>{
         if(err){
@@ -394,7 +467,11 @@ router.route("/addAttendance/:id",auth)
 // signInDate: Date
 //Singout: Date
   //  }
-  //TODO : check ID is diff
+    if(!isHR(req.body.member.id)){
+        res.status(405).send("Error Invalid Credentials")
+        return
+    }
+ 
     if(req.body.member.id == req.params.id){
         res.status(405).send("Error Invalid Credentials")
         return
@@ -417,4 +494,11 @@ router.route("/addAttendance/:id",auth)
   }) 
 })
 
+function isHR(ID) {
+    if(ID.includes("hr")){
+        return true;
+    }
+    return false;
+}
 
+module.exports = router;
