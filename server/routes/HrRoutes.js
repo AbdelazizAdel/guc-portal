@@ -9,8 +9,11 @@ const AttendanceModel = require('../models/Attendance.js');
 const CourseModel = require('../models/Course.js');
 const FacultyModel = require('../models/Faculty.js');
 const LocationModel = require('../models/Location.js')
+const auth = require('../routes/middleware.js')
 
 router.use(express.json());
+//router.use(auth)
+
 
 
 //* Add Update or Delete a Location 
@@ -297,6 +300,7 @@ router.route("/addMember")
             res.status(400).send("Room Doesnt exist")
             return ;
         }
+        
         else{
             if (doc.capacity > 0 && doc.type == "office"){
                 try {
@@ -336,5 +340,79 @@ router.route("/addMember")
     })
    }
 }) 
+
+router.route("/addSignIn/:id")
+.post(async(req,res)=>{
+    // body{
+// signInDate: Date
+  //  }
+  //TODO : check ID is diff
+
+  MemberModel.findById(req.params.id,(err,doc)=>{
+      if(err){
+          res.status(400).send("Error Finidng the Member")
+          return
+      }
+      else{
+        doc.attendance.push({
+            signIn: req.body.signIn,
+            signOut: undefined
+           })
+           doc.attendance.sort((a,b)=>{
+              return a.signIn < a.signIn
+           });
+           res.status(200).send("Added SignIn Record")
+      }
+  }) 
+})
+
+router.route("/addSignOut/:id")
+.post(async(req,res)=>{
+
+    MemberModel.findById(req.params.id,(err,doc)=>{
+        if(err){
+            res.status(400).send("Error Finidng the Member")
+            return
+        }
+        else{
+          doc.attendance.push({
+              signIn: undefined,
+              signOut: req.body.signOut       
+             });
+
+             doc.attendance.sort((a,b)=>{
+                return a.signIn < a.signIn
+             });
+             res.status(200).send("Added SignIn Record")
+        }
+    })
+
+})
+
+router.route("/addAttendance/:id")
+.post(async(req,res)=>{
+    // body{
+// signInDate: Date
+//Singout: Date
+  //  }
+  //TODO : check ID is diff
+
+  MemberModel.findById(req.params.id,(err,doc)=>{
+      if(err){
+          res.status(400).send("Error Finidng the Member")
+          return
+      }
+      else{
+        doc.attendance.push({
+            signIn: req.body.signIn,
+            signOut: req.body.signOut
+           })
+           doc.attendance.sort((a,b)=>{
+              return a.signIn < a.signIn
+           });
+           res.status(200).send("Added SignIn Record")
+      }
+  }) 
+})
 
 
