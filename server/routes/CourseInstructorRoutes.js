@@ -315,7 +315,7 @@ router.get('/instructors/:instructorId/courses/:courseid/unassigned-slots',[auth
     courseTAs = [...course.TAs];
     courseInstructors = [...course.instructors];
     const unAssignedSlots = await Slot.find().and([{'course':courseId},{'$or':[{'instructor':{"$exists":false}},{'instructor':null}]}]);
-    response= {unAssignedSlots:unAssignedSlots.map((elem)=>{return {day:elem.day,period:elem.period,location:elem.location,slotType:elem.slotType,course:course.name    }}),courseTAs:courseTAs,courseInstructors:courseInstructors};
+    response= {unAssignedSlots:unAssignedSlots.map((elem)=>{return {id:elem.id,day:elem.day,period:elem.period,location:elem.location,slotType:elem.slotType,course:course.name    }}),courseTAs:courseTAs,courseInstructors:courseInstructors};
     res.status(200).send(response);
 });
 /**
