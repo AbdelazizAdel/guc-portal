@@ -22,9 +22,9 @@ router.post('/request',async(req,res)=>{
     res.status(200).send('The request has bben saved');
 
 })
-router.get('/coordinator/:coordinatorId/courses',[authentication],async(req,res)=>{
-    const coordinatorId = req.params.coordinatorId;
-    const coordinator = await StaffMember.findOne({'id':`${coordinatorId}`});
+router.get('/coordinator/courses',[authentication],async(req,res)=>{
+    const coordinatorId = req.body.member.id;
+    const coordinator =req.body.member;
     if(coordinator == null){
         return res.status(404).send('This member is not found!!');
     }
@@ -41,10 +41,10 @@ router.get('/coordinator/:coordinatorId/courses',[authentication],async(req,res)
     res.status(200).send(response);
 
 })
-router.get('/coordinator/:coordinatorId/courses/:courseId/slot-linking-requests',[authentication],async(req,res)=>{
-    const coordinatorId = req.params.coordinatorId;
+router.get('/coordinator/courses/:courseId/slot-linking-requests',[authentication],async(req,res)=>{
+    const coordinatorId = req.body.member.id;
     const courseId = req.params.courseId;
-    const coordinator = await StaffMember.findOne({'id':`${coordinatorId}`});
+    const coordinator = req.body.member;
     if(coordinator == null){
         return res.status(404).send('The member you are trying to access is not found!!');
     }
@@ -92,12 +92,12 @@ router.get('/coordinator/:coordinatorId/courses/:courseId/slot-linking-requests'
 
 });
 
-router.patch('/coordinator/:coordinatorId/courses/:courseId',[authentication],async (req,res)=>{
-    const coordinatorId = req.params.coordinatorId;
+router.patch('/coordinator/courses/:courseId',[authentication],async (req,res)=>{
+    const coordinatorId = req.body.member.id;
     const courseId = req.params.courseId;
     const requestId = req.body.requestId;
     const requestResponse = req.body.requestResponse;
-    const coordinator = await StaffMember.findOne({'id':`${coordinatorId}`});
+    const coordinator = req.body.member;
     if(coordinator == null){
         return res.status(404).send('Member not found!!');
     }
