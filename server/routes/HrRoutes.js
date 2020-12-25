@@ -2,7 +2,7 @@ const express= require('express');
 const router= express.Router();
 
 const DepartmentModel = require('../models/Department.js');
-const MemberModel = require('../models/Member.js');
+const MemberModel = require('../models/StaffMember.js');
 const RequestModel = require('../models/Request.js');
 const SlotModel = require('../models/Slot.js');
 const AttendanceModel = require('../models/Attendance.js');
@@ -247,10 +247,94 @@ router.route("/addCourse")
         res.status(200).send('Course updated Successfully');
         }
     
-    }
-        )
+    })
+})
+//* Update / Delete Staff Members
+router.route("/opStaffMemeber/:id")
+.post(async(req, res)=>{
+
+    MemberModel.findByIdAndUpdate(req.params.id,req.body, (err,doc)=>{
+        if(err){
+            res.status(400).send("Error Updating Staff Member");
+            return ;
+        }
+        else{
+            res.status(200).send("Staff Memebr Updated Successfully")
+        }
+    })
 
 })
 
+.delete(async(req, res)=>{
+    MemberModel.findByIdAndDelete(req.params.id,(err,doc)=>{
+        if(err){
+            res.status(400).send("Error Deleteing Staff Member! It might Not Exist");
+            return ;
+        }
+        else{
+            res.status(200).send("Staff Memebr Deleted Successfully")
+        }
+    })
+}
+)
+
+// * Add a New Staff Member 
+router.route("/addMember")
+.post(async(req,res)=>{
+   // ! Unique Emails
+
+   // ! Unique IDs
+
+   //! Default 123456 Password
+
+   //! NO Full office Locations & NO COURSE ASSIGNMENT
+
+   // TODO Check Extra Info
+   const body  = req.body
+   if(body.officeLoc != undefined){
+    LocationModel.findById(body.officeLoc, (err,doc)=>{
+        if(err){
+            res.status(400).send("Room Doesnt exist")
+            return ;
+        }
+        else{
+            if (doc.capacity > 0 && doc.type == "office"){
+                try {
+
+                    const StaffMember = new StaffMemberSchema({
+                        "id":body.id,
+                        "email":body.email,
+                        "name":body.id,
+                        "gender":body.gender,
+                        "salary":body.salary,
+                        "dayOff": body.dayOff,
+                        "officeLoc": Stribody.officeLocng,
+                        "leaves": body.leaves, // indicates the number of leaves the staff member has taken
+                        "attendance":body.attendance,
+                        "startDay":body.startDay,    // The day on which the Staff member started his job at the University
+                        "loggedIn": body.loggedIn, // determines if this user is logged in or not (has a valid token)
+                        "notifications" : [],
+                        "firstLogin" : body.firstLogin,
+                        "department" : body.department
+                       })
+                
+                       StaffMember.save((err,doc)=>{
+                           if(err){
+                               res.status(400).send("Error in Adding The Member")
+                           }
+                           else{
+                            res.status(200).send("Successfully Added The Member")
+                           }
+                       })
+                       
+                   } catch (error) {
+                       res.status(400).send("Error In Data Form, please check again")
+                   } 
+            }
+
+        }
+    })
+   }
+}) 
 
 
