@@ -22,24 +22,29 @@ function isMonthValid(month) {
 }
 
 function isValidStaffId(id) {
-    return new RegExp('ac-[1-9]\d*').test(id);
+    return new RegExp('ac-[1-9]\d*').test(id) || new RegExp('hr-[1-9]\d*').test(id);
 }
 
 router.get('/attendance/:year/:month/:staffId', [authentication], async(req, res)=>{
     let {year, month, staffId} = req.params;
+
     if(!isYearValid(year))
         return res.send('this is not a valid year');
+
     if(!isMonthValid(month))
         return res.send('this is not a valid month');
-    if(!isValidStaffId(staffId))
+
+
+    if(!isValidStaffId(staffId)){
+        console.log('here3', staffId)
         return res.send('this is not a valid staffmember');
-    console.log('here')
+    }
 
     const{attendance} = await StaffMember.findOne({id: staffId});
-    console.log(attendance)
+
     if(attendance == undefined)
         return res.send([]);
-    console.log(attendance)
+
     year = Number(year);
     month = Number(month);
     let result = [];
@@ -69,7 +74,7 @@ router.get('/attendance/:year/:month/:staffId', [authentication], async(req, res
             return (signIntime >= start && signIntime <= end) || (signOutTime >= start && signOutTime <= end); 
         });
     }
-//    console.log(result)
+    console.log(result)
     res.status(200).send(result);
 })
 
@@ -87,13 +92,13 @@ async function getAttendanceRecords(token, id) {
     }
     const response = await superagent.get(`http://localhost:3000/HR/attendance/${year}/${month}/${id}`).set('auth_token', token);
 //    console.log(response.body)
-    let records = response.body.map((elem) => {
+    const records = response.body.map((elem) => {
             if(elem.signIn != undefined)
                 elem.signIn = new Date(elem.signIn);
             if(elem.signOut != undefined)
                 elem.signOut = new Date(elem.signOut);
             return elem;
-        })
+    })
     return {
         records,
         startYear : year,
@@ -198,7 +203,7 @@ router.get('/StaffMembersWithMissingDays', [authentication], async(req, res)=>{
 })
 
 async function missingHours(id, dayOff, token) {
-    const {records, startYear, startMonth} = await getAttendanceRecords(token);
+    const {records, startYear, startMonth} = await getAttendanceRecords(token, id);
     const numDays = numOfDays(startYear, startMonth);
     const firstDay = new Date(startYear, startMonth, 11).getTime();
     const days = createDays(firstDay, numDays);

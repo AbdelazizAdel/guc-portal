@@ -5,8 +5,6 @@ const dotenv = require('dotenv');
 dotenv.config();
 const mongoose = require('mongoose');
 const memberModel = require('../../server/models/StaffMember.js');
-const CourseModel = require('../../server/models/Course.js');
-const departmentModel = require('../../server/models/Department.js');
 const requestModel = require('../../server/models/Request.js'); 
 const bcrypt = require('bcrypt');
 
@@ -25,38 +23,12 @@ catch(err) {
 beforeEach(async () => {
     await memberModel.deleteMany();
     await requestModel.deleteMany();
-    // await CourseModel.deleteMany();
-    // await departmentModel.deleteMany();
-    // await createCourse(course, 'analysis');
-    // await createDepartment();
-    //await createStaffMembers();
 });
 
 
 afterAll(async()=>{
     await memberModel.deleteMany();
 })
-
-async function createCourse(courseId, courseName){
-    const courseA = new CourseModel({
-        id: courseId,
-        name: courseName,
-        mainDepartment : 'd-1',
-    });
-    
-    await courseA.save();
-}
-var course = 'CSEN 703';
-
-async function createDepartment(){
-    const department = new departmentModel({
-        id: 'd-1',
-        name: 'Computer Science',
-        HOD: 'ac-1'
-    })
-
-    await department.save();
-}
 
 
 const curDate = new Date(), curYear = curDate.getFullYear(), curMonth = curDate.getMonth(), curDay = curDate.getDate();
@@ -65,24 +37,6 @@ let attendance = [];
 for(let i = 11; i < curDay - 2; i++)
     attendance[attendance.length] = {signIn : new Date(curYear, curMonth, i, 8), signOut : new Date(curYear, curMonth, i, 13)};
 
-
-async function createStaffMembers(){
-    let staff = [];
-    for(let i=2;i<10;i+=2){
- 
-        const memberA = new memberModel({
-            id: 'ac-'+i,
-            email: 'ac-'+i+'@guc.edu.eg',
-            name: 'ac-'+i,
-            department: 'd-1',
-            dayOff: i%7,
-            attendance: attendance
-        });
-        staff.push(memberA);
-        await memberA.save();
-    }
-    return staff;
-}
 
 async function createHR() {
     const hr = new memberModel({
