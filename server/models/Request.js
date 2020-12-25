@@ -9,7 +9,8 @@ const RequestScheme = new mongoose.Schema({
     status: {type:String, enum:['Accepted', 'Rejected', 'Pending']},
     content: String,
     comment: String,
-    type: {type:String, enum:['ReplacementSlot']}, //not complete, add others when needed
+    type: {type:String, enum:['ReplacementSlot', 'AccidentalLeave', 'AnnualLeave', 'SickLeave', 'MaternityLeave', 'CompensationLeave',
+    'SlotLinking', 'DayOff']}, //not complete, add others when needed
     submissionDate: Date,
     startDate: Date,
     dayOff : Date,

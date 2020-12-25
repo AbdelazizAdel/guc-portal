@@ -24,7 +24,7 @@ function createRequest(startDate, duration, type, dayOff) {
     const request = new requestModel({
         sender : 'ac-1',
         reciever : 'ac-2',
-        status : 'accepted',
+        status : 'Accepted',
         type,
         startDate,
         duration,

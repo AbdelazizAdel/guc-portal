@@ -9,6 +9,7 @@ const Faculty = require('../models/Faculty.js');
 const Replacement = require('../models/ReplacementSlot.js');
 const Authentication = require('./middleware.js').authentication;
 const MetaData = require('../models/metaData.js');
+const { request } = require('express');
 
 router.use(express.json());
 
@@ -153,6 +154,58 @@ router.post('/slotlinking/request', [Authentication], async (req, res) => {
     }
 });
 
+router.delete('/request/:requestID', [Authentication], async(req, res) => {
+    const {id} = req.body.member;
+    const request = await Request.findOne({id : req.params.requestID});
+    if(request == null)
+        return res.send('There is no request with such id');
+    if(request.status == 'Pending') {
+        await Request.deleteOne({id : req.params.requestID});
+        return res.send('request cancelled');
+    }
+    if(request.status == 'Accepted' && request.type != 'SlotLinking' && request.type != 'DayOff' &&
+        request.startDate.getTime() > new Date().getTime()) {
+        if(request.type == 'SickLeave' || request.type == 'MaternityLeave') {
+            await Request.deleteOne({id : req.params.requestID});
+            return res.send('request cancelled');
+        }
+        if(request.type == 'AccidentalLeave' || request.type == 'AnnualLeave') {
+            const duration = request.duration == undefined ? 1 : request.duration;
+            await Member.updateOne({id}, {leaves : req.body.member.leaves - duration});
+            await Request.deleteOne({id : req.params.requestID});
+            return res.send('request cancelled');
+        }
+        if(request.type == 'ReplacementSlot') {
+            const slot = await Slot.findOne({id : request.slot});
+            if(slot == null)
+                return res.send('error happened during cancelation');
+            const replacement = await Replacement.findOne({
+                day : slot.day,
+                period : slot.period,
+                location : slot.location,
+                date : request.startDate
+            });
+            if(replacement == null)
+                return res.send('error happened during cancelation');
+            await Replacement.deleteOne({id : replacement.id});
+            await Request.deleteOne({id : req.params.requestID});
+            return res.send('request cancelled');
+        }
+    }
+    else
+        res.send('This request cannot be cancelled');
+});
+
+
+router.get('/submittedRequests', [Authentication], async(req, res) => {
+    const {id} = req.body.member;
+    if(req.body.status == undefined) {
+        const requests = await Request.find().or([{sender : id}, {receiver : id}]);
+        return res.send(requests);
+    }
+    const requests = await Request.find({status : req.body.status}).or([{sender : id}, {receiver : id}]);
+    return res.send(requests);
+})
 router.post('/changedayoff/request', [Authentication], async (req, res) => {
     try{
         let requestId = await MetaData.find({'sequenceName':`request`});
