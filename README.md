@@ -264,7 +264,7 @@ server/index.js
 	* Request body : {{signIn:"UTC 19:00:00"}, {signIn:"UTC 22:00:00"}}
 	* Response : Text indicating whether the Record was Added or Not
 ***
-### 4.2 Course Instructor Functionalities
+### 3.2 Course Instructor Functionalities
 * #### View the coverage of course(s) he/she is assigned to.
     * Functionality : view the percentage of slots assigned to academic members relative to the total number of slots.
     * Route : ```/instructors/:instructorId/coverage```
@@ -469,7 +469,7 @@ server/index.js
         * memberId refers to the TA that will be assigned as a coordinator
     * Response : A text saying that the assigning was successful
 ***
-### 4.3 Course Coordinator Functionalities
+### 3.3 Course Coordinator Functionalities
 * #### View "slot linking" request(s) from academic members linked to his/her course
     * Routes :
         * 1st route name : ```/coordinator/courses```
