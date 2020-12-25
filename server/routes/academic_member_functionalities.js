@@ -45,7 +45,7 @@ router.get('/schedule', [Authentication], async (req, res)=>{
 
 router.post('/replacement/request', [Authentication], async (req, res) => {
     try{
-        let requestId = await MetaData.find().and([{'sequenceName':{"$in":`replacementSlot`}}]).lastId;
+        let requestId = await MetaData.find().and([{'sequenceName':`replacementSlot`}]).lastId;
         let courseId = req.body.courseId;
         let sender = req.body.member.id;
         receiver = req.body.receiver;
@@ -81,10 +81,7 @@ router.post('/replacement/request', [Authentication], async (req, res) => {
             attachmentURL : req.body.attachmentURL
         });
         console.log(typeof(replacementSlot));
-        request.save((err, slot)=>{
-            if(err) return console.log(err);
-            console.log('Replacement request sent successfully');
-        });
+        request.save();
         res.status(200).send('Replacement request sent successfully');
     }
     catch(err) {
