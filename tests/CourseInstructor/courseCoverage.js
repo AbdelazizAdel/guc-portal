@@ -26,6 +26,8 @@ beforeEach(async () => {
     await courseModel.deleteMany();
     await slotModel.deleteMany();
 });
+
+
 describe('Testing Course Coverage route',()=>{
     it('A case where the Slot model will not return any records',
     async ()=>{
