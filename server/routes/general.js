@@ -258,13 +258,13 @@ router.get('/missingDays', [authentication], async(req, res) => {
         const year = records[i].signIn.getFullYear(), month = records[i].signIn.getMonth(), day = records[i].signIn.getDate();
         days[String(new Date(year, month, day).getTime())] = false;
     }
-    const requests = await requestModel.find({sender : id, status : 'accepted'}).or([
-        {type : 'annual'}, {type : 'accidental'}, {type : 'sick'}, {type : 'maternity'}
+    const requests = await requestModel.find({sender : id, status : 'Accepted'}).or([
+        {type : 'AnnualLeave'}, {type : 'AccidentalLeave'}, {type : 'SickLeave'}, {type : 'MaternityLeave'}
     ]);
     const compensationLeaves = await requestModel.find({
         sender : id,
-        status : 'accepted',
-        type : 'compensation',
+        status : 'Accepted',
+        type : 'CompensationLeave',
         startDate : {$gte : new Date(firstDay), $lt : new Date(firstDay + numDays * day_ms)},
         dayOff :  {$gte : new Date(firstDay), $lt : new Date(firstDay + numDays * day_ms)}
     });
@@ -319,8 +319,8 @@ router.get('/missingHours', [authentication], async(req, res) => {
     }
     const compensationLeaves = await requestModel.find({
         sender : id,
-        status : 'accepted',
-        type : 'compensation',
+        status : 'Accepted',
+        type : 'CompensationLeave',
         startDate : {$gte : new Date(firstDay), $lt : new Date(firstDay + numDays * day_ms)},
         dayOff :  {$gte : new Date(firstDay), $lt : new Date(firstDay + numDays * day_ms)}
     });
