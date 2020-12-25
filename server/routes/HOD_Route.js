@@ -206,14 +206,13 @@ router.get('/viewChangeDayOffRequests', [authentication], async (req, res)=>{
 });
 
 function getRequest(request){
-    return {from: request.sender, status: request.status, content: request.content, slot: request.slot, documents: request.attachmentURL}
+    return {id: request.id, from: request.sender, status: request.status, content: request.content, slot: request.slot, documents: request.attachmentURL}
 }
 
-router.route('/viewLeaveRequests').get(async (req, res)=>{
+router.get('/viewLeaveRequests', [authentication], async (req, res)=>{
     try{
         let HOD_Id = req.body.member.id;
-
-        let requests = await RequestModel.find({receiver: HOD_Id, type: "Leave"});
+        let requests = await RequestModel.find({receiver: HOD_Id, type: /Leave/});
         let results = []
         for(request of requests)
             results.push(getRequest(request));
@@ -225,37 +224,90 @@ router.route('/viewLeaveRequests').get(async (req, res)=>{
 })
 
 
-router.post('/request').post(async(req, res)=>{
+router.post('/HOD/request', [authentication], async(req, res)=>{
     try{
-        let requestId = req.body.id;
+        let requestId = req.body.requestId;
         let status = req.body.status;
         if(requestId == undefined || status == undefined)
             return res.status(403).send('There is missing data');
         if(status == 'Accepted'){
             let request = await RequestModel.findOneAndUpdate({id: requestId}, {status: status});
+            let duration;
+            switch(request.type){
+                case "ChangeDayOff":
+                    let newDayOff = request.startDate.getDate()-1;
+                    await StaffMemberModel.findOneAndUpdate({id: request.sender},  
+                        {dayOff: newDayOff, $push: {notifications:'Your change-day off request has been accepted'}});
+                    break;
+                case 'AnnualLeave':
+                    duration = request.duration;
+                    await StaffMemberModel.findOneAndUpdate({id: request.sender}, 
+                        {$inc :{leaves: duration}, $push: {notifications:'Your annual leave request has been accepted'}});
+                    break;
+                case 'AccidentalLeave':
+                    duration = request.duration;
+                    await StaffMemberModel.findOneAndUpdate({id: request.sender}, 
+                        {$inc :{leaves: duration}, $push: {notifications:'Your accidental leave request has been accepted'}});
+                    break;
+                case 'SickLeave':
+                    await StaffMemberModel.findOneAndUpdate({id: request.sender},  
+                        {$push: {notifications:'Your sick leave request has been accepted'}});
+                    break;
+                case 'MaternityLeave':
+                    await StaffMemberModel.findOneAndUpdate({id: request.sender},  
+                        {$push: {notifications:'Your maternity leave request has been accepted'}});
+                    break;
+                case 'CompensationLeave':
+                    await StaffMemberModel.findOneAndUpdate({id: request.sender},  
+                        {$push: {notifications:'Your Compensation leave request has been accepted'}});
+                    break;
+                default:
+                    return res.status(403).send('invalid data');
+            }
+            res.status(200).send('Request is accepted successfully');
+        }else if(status == 'Rejected'){
+            let comment = req.body.comment;
+            let request;
+            if(comment != undefined){
+                request = await RequestModel.findOneAndUpdate({id: requestId}, {status: status, comment: comment});
+            }else{
+                request = await RequestModel.findOneAndUpdate({id: requestId}, {status: status});
+            }
             switch(request.type){
                 case "ChangeDayOff":       
                     let newDayOff = request.startDate.getDay();
-                    await StaffMemberModel.findOneAndUpdate({id: request.sender}, {dayOff: newDayOff});
-                    res.status(200).send('day off has been changed successfully');
+                    await StaffMemberModel.findOneAndUpdate({id: request.sender},  
+                        {$push: {notifications:'Your change-day off request has been rejected'}});
                     break;
-                case '':
+                case 'AnnualLeave':
+                    await StaffMemberModel.findOneAndUpdate({id: request.sender}, 
+                        {$push: {notifications:'Your annual leave request has been rejected'}});
                     break;
-
+                case 'AccidentalLeave':
+                    await StaffMemberModel.findOneAndUpdate({id: request.sender}, 
+                        {$push: {notifications:'Your accidental leave request has been rejected'}});
+                    break;
+                case 'SickLeave':
+                    await StaffMemberModel.findOneAndUpdate({id: request.sender},  
+                        {$push: {notifications:'Your sick leave request has been rejected'}});
+                    break;
+                case 'MaternityLeave':
+                    await StaffMemberModel.findOneAndUpdate({id: request.sender},  
+                        {$push: {notifications:'Your maternity leave request has been rejected'}});
+                    break;
+                case 'CompensationLeave':
+                    await StaffMemberModel.findOneAndUpdate({id: request.sender},  
+                        {$push: {notifications:'Your Compensation leave request has been rejected'}});
+                    break;
                 default:
-
-    
+                    return res.status(403).send('invalid data');
             }
-        }else if(status == 'Rejected'){
-            let comment = req.body.comment;
-            if(comment != undefined){
-                await RequestModel.findOneAndUpdate({id: requestId}, {status: status, comment: comment});
-            }
-            res.status(200).send('Rejected')
+            res.status(200).send('Request is Rejected successfully')
         }else{
             res.status(403).send('invalid request status');
         }    
     }catch(error){
+        console.log('here4')
         res.status(404).send(error);
     }
 })
@@ -278,7 +330,7 @@ async function courseCoverage(course){
     return {courseId: course.id, name: course.name, coverage: coverage};
 }
 
-router.route('/viewTeachingAssignments').get(async (req, res)=>{
+router.get('/viewTeachingAssignments',[authentication] ,async (req, res)=>{
     let HOD_Id = req.body.id;
     let course = req.body.courseId;
 

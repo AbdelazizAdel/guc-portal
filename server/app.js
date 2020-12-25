@@ -13,7 +13,7 @@ app.use(generalRoutes);
 app.use(courseInstructorRoutes);
 app.use(courseCoordinatorRoutes);
 
-const HOD = require('./routes/HOD_Route');
+const HOD = require('./routes/HOD_Route.js');
 app.use(HOD);
 
 const HR = require('./routes/HR.js');

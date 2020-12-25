@@ -7,7 +7,8 @@ const mongoose = require('mongoose');
 const memberModel = require('../../server/models/StaffMember.js');
 const CourseModel = require('../../server/models/Course.js');
 const departmentModel = require('../../server/models/Department.js');
-const requestModel = require('../../server/models/Request.js'); 
+const requestModel = require('../../server/models/Request.js');
+const {createMember} = require('../general/helper');
 const bcrypt = require('bcrypt');
 
 
@@ -22,19 +23,25 @@ catch(err) {
     console.log(err);
 }
 
+let token, staff;
 beforeEach(async () => {
     await memberModel.deleteMany();
+    await CourseModel.deleteMany();
+    await departmentModel.deleteMany();
     await requestModel.deleteMany();
-    // await CourseModel.deleteMany();
-    // await departmentModel.deleteMany();
-    // await createCourse(course, 'analysis');
-    // await createDepartment();
-    //await createStaffMembers();
+    const {member, plainTextPassword} = await createMember();
+    await createCourse(course, 'analysis');
+    await createDepartment();
+    staff = await createStaffMembers();
+    await member.save();
+    const response = await request.post('/login').send({email : member.email, password : plainTextPassword});
+    token = response.headers.auth_token;
 });
 
 
 afterAll(async()=>{
     await memberModel.deleteMany();
+    await requestModel.deleteMany();
 })
 
 async function createCourse(courseId, courseName){
@@ -47,6 +54,7 @@ async function createCourse(courseId, courseName){
     await courseA.save();
 }
 var course = 'CSEN 703';
+var instructors = ['ac-2', 'ac-4', 'ac-6', 'ac-8'];
 
 async function createDepartment(){
     const department = new departmentModel({
@@ -57,6 +65,7 @@ async function createDepartment(){
 
     await department.save();
 }
+
 
 
 const curDate = new Date(), curYear = curDate.getFullYear(), curMonth = curDate.getMonth(), curDay = curDate.getDate();
@@ -84,44 +93,80 @@ async function createStaffMembers(){
     return staff;
 }
 
-async function createHR() {
-    const hr = new memberModel({
-        id: 'hr-1',
-        email: 'moreda@guc.edu.eg',
-        password: 'kcsckcsk',
-        name: 'Mahmoud Reda',
-        dayOff: 6,
-        attendance: attendance,
-        loggedIn: false
-    })
-    const plainTextPassword = hr.password;
-    const salt = await bcrypt.genSalt();
-    const hashedPass = await bcrypt.hash(hr.password, salt);
-    hr.password = hashedPass;
 
-    await hr.save();
-    return {
-        hr,
-        plainTextPassword
-    };
-}
+// describe('testing HOD requests', ()=>{
+//     test('testing view change day off requests', async()=>{
+//         const req = new requestModel({
+//             id: 'req-1',
+//             sender: 'ac-2',
+//             receiver: 'ac-1',
+//             status: 'pending',
+//             content: 'day off',
+//             type: "ChangeDayOff",
+//             dayOff : 5
+//         }) 
+//         await req.save();
+//         const res = await request.get('/viewChangeDayOffRequests').set('auth_token', token);
+//         expect(res.body[0].id).toBe(req.id);
+//     })
+//     test('testing view change leave requests', async()=>{
+//         const req = new requestModel({
+//             id: 'req-1',
+//             sender: 'ac-2',
+//             receiver: 'ac-1',
+//             status: 'pending',
+//             content: 'day off',
+//             type: "AnnualLeave"
+//         }) 
+//         await req.save();
+//         const req2 = new requestModel({
+//             id: 'req-2',
+//             sender: 'ac-4',
+//             receiver: 'ac-1',
+//             status: 'pending',
+//             content: 'day off',
+//             type: "SickLeave"
+//         }) 
+//         await req2.save();
+//         const res = await request.get('/viewLeaveRequests').set('auth_token', token);
+//         console.log(res.body)
+//         expect(res.body[0].id).toBe(req.id);
+//         expect(res.body[1].id).toBe(req2.id);
+//     })
+// })
 
-describe('testing view staff with missing days/hours', ()=>{
-    test('testing view staff with missing days', async()=>{
-        const{hr, plainTextPassword}= await createHR();
-        const response = await request.post('/login').send({email : hr.email, password : plainTextPassword});
-        const token = response.headers.auth_token;
-        const res = await request.get('/HR/StaffMembersWithMissingDays').set('auth_token', token);
-        console.log(res.body);
-        expect(200);
-    })
-
-    test('testing view staff with missing hours', async()=>{
-        const{hr, plainTextPassword}= await createHR();
-        const response = await request.post('/login').send({email : hr.email, password : plainTextPassword});
-        const token = response.headers.auth_token;
-        const res = await request.get('/HR/StaffMembersWithMissingHours').set('auth_token', token);
-        console.log(res.body);
-        expect(200);
-    })
+describe('testing accept/reject requests',()=>{
+  test('testing accept change-day off request', async()=>{
+    const req = new requestModel({
+        id: 'req-1',
+        sender: 'ac-2',
+        receiver: 'ac-1',
+        status: 'pending',
+        content: 'day off',
+        type: "ChangeDayOff",
+        startDate: new Date(),
+        dayOff : 5
+    }) 
+    await req.save();
+    const res = await request.post('/HOD/request').send({requestId: req.id, status: 'Accepted'}).set('auth_token', token);
+    expect(200);
+    expect(res.text).toMatch('Request is accepted successfully');
+  })
+  
+  test('testing reject annual leave request', async()=>{
+    const req = new requestModel({
+        id: 'req-1',
+        sender: 'ac-2',
+        receiver: 'ac-1',
+        status: 'pending',
+        content: 'day off',
+        type: "AnnualLeave",
+        duration: 5,
+        startDate: new Date()
+    }) 
+    await req.save();
+    const res = await request.post('/HOD/request').send({requestId: req.id, status: 'Rejected'}).set('auth_token', token);
+    expect(200);
+    expect(res.text).toMatch('Request is Rejected successfully');
+  })
 })
