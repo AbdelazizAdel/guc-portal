@@ -21,6 +21,9 @@ router.post('/assignInstructor',[authentication] ,async(req, res)=>{
         let courseId = value.courseId;
         let instructorId = value.instructorId;
         let HOD = value.member.id;
+        const department = await DepartmentModel.findOne({HOD: HOD});
+        if(!department)
+            return res.send('invalid data')    
         if(!isValid(courseId, HOD, instructorId)){
             console.log('Invalid course or instructor');
             res.status(403).send('Invalid course or instructor');
@@ -58,6 +61,9 @@ router.delete('/deleteInstructor', [authentication], async(req, res)=>{
         let courseId = value.courseId;
         let instructorId = value.instructorId;
         let HOD = value.member.id;
+        const department = await DepartmentModel.findOne({HOD: HOD});
+        if(!department)
+            return res.send('invalid data')    
 
         if(!isValid(courseId, HOD, instructorId)){
             console.log('Invalid course or instructor');
@@ -89,6 +95,9 @@ router.put('/updateInstructor', [authentication],async(req, res)=>{
         let instructorId1 = value.instructorId1;
         let instructorId2 = value.instructorId2;
         let HOD = value.member.id;
+        const department = await DepartmentModel.findOne({HOD: HOD});
+        if(!department)
+            return res.send('invalid data')    
         if(!isValid(courseId, HOD, instructorId1, instructorId2)){
             console.log('Invalid course or instructor');
             res.status(403).send('Invalid course or instructor');
@@ -114,6 +123,8 @@ router.get('/viewStaff', [authentication], async(req, res)=>{
         let courseId = value.courseId;
         let HOD_Id = value.member.id;
         const department = await DepartmentModel.findOne({HOD: HOD_Id});
+        if(!department)
+            return res.send('invalid data')
         if(!courseId){
             const staffMembers = await StaffMemberModel.find({department: department.id});
             const profiles = [];
@@ -167,6 +178,8 @@ router.get('/viewDayOff', [authentication], async (req, res)=>{
         let staffId = value.staffId;
         let HOD_Id = value.member.id;
         const department = await DepartmentModel.findOne({HOD: HOD_Id});
+        if(!department)
+            return res.send('invalid data')
         if(!staffId){
             const staffMembers = await StaffMemberModel.find({department: department.id});
     
@@ -226,6 +239,11 @@ router.get('/viewLeaveRequests', [authentication], async (req, res)=>{
 
 router.post('/request', [authentication], async(req, res)=>{
     try{
+        let HOD_Id = req.body.member.id;
+        const department = await DepartmentModel.findOne({HOD: HOD_Id});
+        if(!department)
+            return res.send('invalid data');
+                
         let requestId = req.body.requestId;
         let status = req.body.status;
         if(requestId == undefined || status == undefined)
@@ -314,6 +332,8 @@ router.post('/request', [authentication], async(req, res)=>{
 router.get('/viewCoverage', [authentication], async(req, res)=>{
     let HOD_Id = req.body.member.id;
     const department = await DepartmentModel.findOne({HOD: HOD_Id});
+    if(!department)
+        return res.send('invalid data')
     const courses = await CourseModel.find({mainDepartment: department.id});
     let coveragerPerCourse = []
     for(course of courses){
@@ -331,7 +351,9 @@ async function courseCoverage(course){
 router.get('/viewTeachingAssignments/:courseId',[authentication] ,async (req, res)=>{
     try{
         let HOD_Id = req.body.member.id;
-        let department = await DepartmentModel.findOne({HOD: HOD_Id});
+        const department = await DepartmentModel.findOne({HOD: HOD_Id});
+        if(!department)
+            return res.send('invalid data')
         let course = req.params.courseId;
         if(await CourseModel.findOne({id: course, mainDepartment: department.id})){
             let slots = await SlotModel.find({course: course});

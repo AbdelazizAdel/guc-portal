@@ -7,6 +7,7 @@ const {authentication} = require('./middleware');
 const superagent = require('superagent');
 const StaffMember = require('../models/StaffMember');
 const Joi = require('joi');
+const { func } = require('joi');
 const router = express.Router();
 const day_ms = 86400000; // number of milliseconds in a day
 
@@ -25,7 +26,13 @@ function isValidStaffId(id) {
     return new RegExp('ac-[1-9]\d*').test(id) || new RegExp('hr-[1-9]\d*').test(id);
 }
 
+function isValidHR(id) {
+    return new RegExp('hr-[1-9]\d*').test(id);
+}
+
 router.get('/attendance/:year/:month/:staffId', [authentication], async(req, res)=>{
+    if(!isValidHR(req.body.member.id))
+        return res.send("Not allowed")
     let {year, month, staffId} = req.params;
 
     if(!isYearValid(year))
@@ -188,6 +195,9 @@ async function missingDays(id, dayOff, token) {
     return result;
 }
 router.get('/StaffMembersWithMissingDays', [authentication], async(req, res)=>{
+    if(!isValidHR(req.body.member.id))
+        return res.send("Not allowed");
+
     let staff = await StaffMember.find();
     let missingDays_staff = [];
     for(member of staff){
@@ -241,6 +251,9 @@ async function missingHours(id, dayOff, token) {
     return result;
 }
 router.get('/StaffMembersWithMissingHours', [authentication], async(req, res)=>{
+    if(!isValidHR(req.body.member.id))
+        return res.send("Not allowed");
+
     let staff = await StaffMember.find();
     let missingHours_staff = [];
     for(member of staff){
@@ -255,6 +268,8 @@ router.get('/StaffMembersWithMissingHours', [authentication], async(req, res)=>{
     res.status(200).send(missingHours_staff);
 })
 router.put('/updateSalary', [authentication], async(req, res)=>{
+    if(!isValidHR(req.body.member.id))
+        return res.send("Not allowed");
     const schema = Joi.object({
         newSalary: Joi.number().required(),
         staffId: Joi.string().min(4).pattern(new RegExp('ac-[1-9]\d*'))
