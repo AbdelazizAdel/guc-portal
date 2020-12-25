@@ -67,8 +67,8 @@ describe("testing missing days route", () => {
     test("testing leave requests case", async() => {
         const {member, plainTextPassword} = await createMember();
         await member.save();
-        await createRequest(new Date(2020, 11, 20), 2, 'sick').save();
-        await createRequest(new Date(2020, 11, 22), 1, 'annual').save();
+        await createRequest(new Date(2020, 11, 20), 2, 'SickLeave').save();
+        await createRequest(new Date(2020, 11, 22), 1, 'AnnualLeave').save();
         const response = await request.post('/login').send({email : member.email, password : plainTextPassword});
         const token = response.headers.auth_token;
         const res = await request.get('/missingDays').set('auth_token', token);
@@ -79,8 +79,8 @@ describe("testing missing days route", () => {
         const {member, plainTextPassword} = await createMember();
         member.attendance = [{signIn : new Date(2020, 11, 19, 5), signOut : new Date(2020, 11, 19, 9)}];
         await member.save();
-        await createRequest(new Date(2020, 11, 16), undefined, 'compensation', new Date(2020, 11, 19)).save();
-        await createRequest(new Date(2020, 10, 16), undefined, 'compensation', new Date(2020, 10, 21)).save();
+        await createRequest(new Date(2020, 11, 16), undefined, 'CompensationLeave', new Date(2020, 11, 19)).save();
+        await createRequest(new Date(2020, 10, 16), undefined, 'CompensationLeave', new Date(2020, 10, 21)).save();
         const response = await request.post('/login').send({email : member.email, password : plainTextPassword});
         const token = response.headers.auth_token;
         const res = await request.get('/missingDays').set('auth_token', token);

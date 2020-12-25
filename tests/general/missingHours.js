@@ -70,8 +70,8 @@ describe("testing missing hours route", () => {
         attendance[attendance.length] = {signIn : new Date(2020, 11, 19, 5), signOut : new Date(2020, 11, 19, 9)};
         member.attendance = attendance;
         await member.save();
-        await createRequest(new Date(2020, 11, 16), undefined, 'compensation', new Date(2020, 11, 19)).save();
-        await createRequest(new Date(2020, 10, 16), undefined, 'compensation', new Date(2020, 10, 21)).save();
+        await createRequest(new Date(2020, 11, 16), undefined, 'CompensationLeave', new Date(2020, 11, 19)).save();
+        await createRequest(new Date(2020, 10, 16), undefined, 'CompensationLeave', new Date(2020, 10, 21)).save();
         const response = await request.post('/login').send({email : member.email, password : plainTextPassword});
         const token = response.headers.auth_token;
         const res = await request.get('/missingHours').set('auth_token', token);
