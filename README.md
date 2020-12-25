@@ -219,4 +219,44 @@ server/index.js
                 ```
             * Response : a text saying that the assigning was successful
 ***
+* #### Update assignment of academic member in course(s) he/she is assigned to
+    * route : ```/academic-members/:memberId/slots/:slotId```
+    * Functionality : assign an academic member to a slot 
+    * Request type : **PATCH**
+    * Parameters :
+        * memberId refers to the (instructor/TA) that will be assigned to the slot
+        * slotId refers to the slot that will be assigned
+    * Request body :
+        ```json
+                {
+                    "instructorId" : "value1",
+                    "courseId" : "value1"
+                }
+        ```
+    * Response : a text saying that the assigning was successful
+***
+* #### Delete assignment of academic member in course(s) he/she is assigned to
+    * route : ```/instructors/:instructorId/slots/:slotId```
+    * Functionality : deleting assignment of academic members to a slot
+    * Request type : **PATCH**
+    * Parameters :
+        * instructorId refers to the (instructor that is assigned to the course
+        * slotId refers to the slot that will be changed
+
+    * Request body :
+        ```json
+        {"courseId" : "value1"}
+        ```
+    * Response : a text saying that the update was successful
+***
+* #### Assign an academic member in each of his/her course(s) to be a course coordinator.
+    * route : ```/instructors/:instructorId/courses/:courseId/coordinator/:memberId```
+    * Functionality : assigns a TA as a course coordinator
+    * Request type : **PATCH**
+    * Parameters :
+        * instructorId refers to the (instructor that is assigned to the course
+        * courseId refers to the course which will be assigned a coordinator
+        * memberId refers to the TA that will be assigned as a coordinator
+    * Response : A text saying that the assigning was successful
+
 
