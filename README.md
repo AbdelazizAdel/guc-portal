@@ -160,7 +160,7 @@ server/index.js
     * Functionality : Add a Faculty 
 	* Route : /addFaculty
 	* Request type : POST
-	* Request body : {id: "f1", name: "Engineering", departments:[]}
+	* Request body : {name: "Engineering", departments:[]}
 	* Response : Text indicating whether the Faculty is Added or Not
 ***
 * ####  Add Update or Delete a Department under a Faculty
@@ -179,7 +179,7 @@ server/index.js
     * Functionality : Add a Department 
 	* Route : /addDepartment
 	* Request type : POST
-	* Request body : {facultyId:"f1", id:"dpt1", name:"CSEN", HOD:"Foobar" }
+	* Request body : {facultyId:"f1", name:"CSEN", HOD:"Foobar" }
 	* Response : Text indicating whether the Department was added or Not
 ***
 * ### Add Update or Delete Course under a Department 
@@ -199,7 +199,7 @@ server/index.js
     * Functionality : Add a Course 
 	* Route : /addCourse
 	* Request type : POST
-	* Request body : { id: 22 , name: "Intro to CS",  coordinator: "FooBar",   TAs:[],  instructors:[], numSlots: 57 , mainDepartment: "dp51" ,  teachingDepartments : []}
+	* Request body : {name: "Intro to CS",  coordinator: "FooBar",   TAs:[],  instructors:[], numSlots: 57 , mainDepartment: "dp51" ,  teachingDepartments : []}
 	* Response : Text indicating whether the Course was added or Not
 ***
 * ### HR can add Staff Members 
@@ -207,7 +207,6 @@ server/index.js
 	* Route : /addMember
 	* Request type : POST
 	* Request body : {
-                        id:ac1,
                         email: foo@bar.com,
                         name: John Appleseed,
                         gender: Male,
