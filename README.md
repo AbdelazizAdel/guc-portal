@@ -120,6 +120,149 @@ server/index.js
 	 * Response : missing hours object. Example : { "missingHours": 12 }
 ***
 ### 2. HR Functionalities :
+* ####  Add Update or Delete a Location
+
+	* Functionality : Update a Location 
+	* Route : /opLocation/:id
+	* Request type : POST
+	* Request body :{"name" : "foo", "capacity" : 4}
+	* Response : Text indicating whether the Location updated or Not
+    ***
+ 
+    * Functionality : Delete a Location 
+	* Route : /opLocation/:id
+	* Request type : Delete
+	* Request body :{}
+	* Response : Text indicating whether the Location was Deleted or Not
+    ***
+
+    * Functionality : Add a Location 
+	* Route : /addLocation
+	* Request type : POST
+	* Request body : {"name": "c7.201", "capacity": 44, "type": "Tutorial room" }
+	* Response : Text indicating whether the Location was Added or Not
+***
+
+* ####  Add Update or Delete a Faculty
+
+    * Functionality : Update a Faculty 
+	* Route : /opFaculty/:id
+	* Request type : POST
+	* Request body : {name: "Engineering Sciences"}
+	* Response : Text indicating whether the Faculty was updated or Not
+	***
+    * Functionality : Delete a Faculty 
+	* Route : /opLocation/:id
+	* Request type : Delete
+	* Request body : {}
+	* Response : Text indicating whether the Faculty was deleted or Not
+	***
+    * Functionality : Add a Faculty 
+	* Route : /addFaculty
+	* Request type : POST
+	* Request body : {name: "Engineering", departments:[]}
+	* Response : Text indicating whether the Faculty is Added or Not
+***
+* ####  Add Update or Delete a Department under a Faculty
+    * Functionality : Update a Department 
+	* Route : /opDepartment/:id
+	* Request type : POST
+	* Request body : {facultyId:"f1", name: "Electronics Engineering Sciences"}
+	* Response : Text indicating whether the Department was Updated or Not
+	***
+    * Functionality : Delete a Department 
+	* Route : /opDepartment/:id
+	* Request type : Delete
+	* Request body : {}
+	* Response : Text indicating whether the Department was Deleted or Not
+	***
+    * Functionality : Add a Department 
+	* Route : /addDepartment
+	* Request type : POST
+	* Request body : {facultyId:"f1", name:"CSEN", HOD:"Foobar" }
+	* Response : Text indicating whether the Department was added or Not
+***
+* ### Add Update or Delete Course under a Department 
+
+    * Functionality : Update a Course
+	* Route : /opCourse/:id
+	* Request type : POST
+	* Request body : {numSlots: 52}
+	* Response : Text indicating whether the Course was updated or Not
+	***
+    * Functionality : Delete a Course 
+	* Route : /opCourse/:id
+	* Request type : Delete
+	* Request body : {}
+	* Response : Text indicating whether the Course was Deleted or Not
+	***
+    * Functionality : Add a Course 
+	* Route : /addCourse
+	* Request type : POST
+	* Request body : {name: "Intro to CS",  coordinator: "FooBar",   TAs:[],  instructors:[], numSlots: 57 , mainDepartment: "dp51" ,  teachingDepartments : []}
+	* Response : Text indicating whether the Course was added or Not
+***
+* ### HR can add Staff Members 
+    * Functionality : Add a Staff Member
+	* Route : /addMember
+	* Request type : POST
+	* Request body : {
+                        email: foo@bar.com,
+                        name: John Appleseed,
+                        gender: Male,
+                        salary:body.salary,
+                        dayOff: Monday,
+                        officeLoc: c7.01,
+                        leaves: 0,
+                        attendance:[],
+                        startDay: 1970 00:00:00 UTC,    
+                        loggedIn: false, 
+                        notifications : [],
+                        firstLogin : 1970 04:00:00 UTC,
+                        department : "CSEN"
+                       }
+	* Response : Text indicating whether the Member was Added or Not
+***
+
+* ### Update or Delete Already Existing Staff Members
+ 	
+    * Functionality : Update a Staff Member 
+	* Route : /opStaffMemeber/:id
+	* Request type : POST
+	* Request body : {officeLoc: "c34.176"}
+	* Response : Text indicating whether the Member was Updated or Not
+	
+    ***
+    * Functionality : Delete a Staff Member 
+	* Route : /opStaffMemeber/:id
+	* Request type : DELETE
+	* Request body : {}
+	* Response : Text indicating whether the Member was Deleted or Not
+***
+
+* ### Add Missing Sign In/Out Records
+
+    * Functionality : Add Sign In 
+	* Route : /addSignIn/:id 
+	* Request type : POST
+	* Request body : {signIn:"UTC 19:00:00"}
+	* Response : Text indicating whether the Record was Added or Not
+	
+    ***
+    
+     * Functionality : Add Sign Out
+	* Route : /addSignOut/:id 
+	* Request type : POST
+	* Request body : {signOut:"UTC 19:00:00"}
+	* Response : Text indicating whether the Record was Added or Not
+	
+	***
+    * Functionality : Add Attendance Record 
+	* Route : /addAttendance/:id
+	* Request type : POST
+	* Request body : {{signIn:"UTC 19:00:00"}, {signIn:"UTC 22:00:00"}}
+	* Response : Text indicating whether the Record was Added or Not
+
 * #### View any staff member attendance record.
 	* Functionality : View any staff member attendance record
 	* Route : /HR/attendance/:year/:month/:staffId
@@ -232,3 +375,8 @@ server/index.js
 	* Parameters : courseId is the id of the course we want to get its teaching assignments 
 	* Response : Array of objects {staffId: member.id, name: member.name, course: slot.course, period: slot.period, day: slot.day, location: slot.location}
 ***
+    
+
+
+
+    

@@ -4,7 +4,7 @@ const { app } = require('./app.js');
 const dotenv = require('dotenv');
 dotenv.config();
 
-mongoose.connect(process.env.DB_URL_TEST, {
+mongoose.connect(process.env.DB_URL_Test, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false 

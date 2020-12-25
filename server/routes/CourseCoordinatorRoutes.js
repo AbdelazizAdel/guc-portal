@@ -131,5 +131,117 @@ router.patch('/coordinator/:coordinatorId/courses/:courseId',[authentication],as
         await  Request.updateOne({'id':`${requestId}`},{'status':'rejected'});
         return res.status(200).send('Request has been successfully rejected!!');
     }
-})
+});
+
+router.post('/slot/add', [authentication], async (req,res)=>{
+    try {
+        let slotId = await MetaData.find({'sequenceName':`slot`})[0].lastId;
+        let sender = req.body.member.id;
+        let courseId = req.body.course;
+        let instructorId = req.body.instructor;
+
+
+        if(courseId === undefined){
+            res.status(404).send('enter course id'); 
+        }
+        let course = await Course.find({'id': courseId})[0];
+
+        if(sender !== course.coordinator){
+            res.status(404).send('Unauthorized');
+        }
+
+        if(instructorId === undefined){
+            res.status(404).send('enter slot instructor id'); 
+        }
+        
+        let courseInstructor = course.TAs.filter((instructor) => {
+            return instructor === instructorId;
+        });
+        
+        const responnse = await Course.updateOne({'id' : courseId}, {'numSlots' : course.numSlots + 1}); //not sure
+        
+        slot = new Slot({
+            'id': slotId,
+            'day': req.body.day,
+            'period': req.body.period,
+            'location': req.body.location,
+            'slotType': req.body.slotType,
+            'course': courseId,
+            'instructor': instructorId
+        });
+        slot.save();
+        res.status(200).send('slot added successfully');
+    }
+    catch(err){
+        console.log(err);
+        res.status(404).send('fih moshkla ya mealem');
+    }
+});
+
+router.delete('/slot/delete', [authentication], async (req,res)=>{
+    try {
+        let slotId = req.body.slot;
+        let sender = req.body.member.id;
+
+        if(slotId === undefined){
+            res.status(404).send('enter slot id'); 
+        }
+
+        let slot = await Slot.find({'id' : slotId})[0];
+        courseId = slot.course;
+
+        let course = await Course.find({'id': courseId})[0];
+
+        if(sender !== course.coordinator){
+            res.status(404).send('Unauthorized');
+        }
+        
+        const updateResponnse = await Course.updateOne({'id' : courseId}, {'numSlots' : course.numSlots - 1}); //not sure
+        const deleteResponse = await Slot.deleteOne({'id' : slotId});
+
+        res.status(200).send('slot deleted successfully');
+    }
+    catch(err){
+        console.log(err);
+        res.status(404).send('fih moshkla ya mealem');
+    }
+});
+
+router.post('slot/update', [authentication], async (req, res) => {
+    try {
+        let slotId = req.body.slot;
+        let sender = req.body.member.id;
+
+        if(slotId === undefined){
+            res.status(404).send('enter slot id');
+        }
+
+        let slot = await Slot.find({'id' : slotId})[0];
+        courseId = slot.course;
+
+        let course = await Course.find({'id': courseId})[0];
+
+        if(sender !== course.coordinator){
+            res.status(404).send('Unauthorized');
+        }
+
+        const updateResponnse = await Slot.updateOne({'id' : slotId}, {
+            'id': slotId,
+            'day': req.body.day,
+            'period': req.body.period,
+            'location': req.body.location,
+            'slotType': req.body.slotType,
+            'course': courseId,
+            'instructor': req.body.instructor
+        });
+
+        res.status(200).send('slot updated successfully');
+    }
+    catch(err){
+        console.log(err);
+        res.status(404).send('fih moshkla ya mealem');
+    }
+});
+
+
 module.exports = router;
