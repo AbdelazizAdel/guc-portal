@@ -240,7 +240,7 @@ router.get('/staff-members/:instructorId/courses',[authentication],async(req,res
         return res.status(404).send('There doesn\'t exist an Instructor with such Id.');
     }
     const instructorCourses = await Course.find({'instructors':{"$in":`${instructorId}`}});
-    if(instructorCourses == null){
+    if(instructorCourses.length == 0){
         return res.status(403).send('The Id provided is not of an instructor, so you can\'t access this information!!');
     }
     const response = {};
