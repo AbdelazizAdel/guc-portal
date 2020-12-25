@@ -161,8 +161,12 @@ router.post('/slot/add', [authentication], async (req,res)=>{
         let courseInstructor = course.TAs.filter((instructor) => {
             return instructor === instructorId;
         });
+
+        let courseInstructor = course.instructors.filter((instructor) => {
+            return instructor === instructorId;
+        });
         
-        // const responnse = await Course.updateOne({'id' : courseId}, {'numSlots' : course.numSlots + 1}); //not sure
+        const responnse = await Course.updateOne({'id' : courseId}, {'numSlots' : course.numSlots + 1}); //not sure
         
         slot = new Slot({
             'id': slotId,
