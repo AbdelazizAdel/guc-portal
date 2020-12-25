@@ -198,7 +198,7 @@ router.get('/viewChangeDayOffRequests', [authentication], async (req, res)=>{
         let requests = await RequestModel.find({receiver: HOD_Id, type: "ChangeDayOff"});
         let results = []
         for(request of requests)
-            results.push(getRequest(request));
+            results.push(request);
         res.status(200).send(results);    
     }catch(err){
         res.status(404).send(err);
@@ -215,7 +215,7 @@ router.get('/viewLeaveRequests', [authentication], async (req, res)=>{
         let requests = await RequestModel.find({receiver: HOD_Id, type: /Leave/});
         let results = []
         for(request of requests)
-            results.push(getRequest(request));
+            results.push(request);
 
         res.status(200).send(results);
     }catch(err){

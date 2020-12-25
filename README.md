@@ -129,14 +129,12 @@ server/index.js
   "SignOut": "2020-11-25T12:52:51.344Z" } 
 ***
 
-* #### View staff members with missing hours.
+* #### View staff members with missing hours/days.
 	* Functionality : View staff members with missing hours
 	* Route : /HR/StaffMembersWithMissingHours
 	* Type : GET
 	* Response : Array of objects {id: member.id, name: member.name, missingHours: hours}
-***
-
-* #### View staff members with missing days.
+  ***
 	* Functionality : View staff members with missing days
 	* Route : /HR/StaffMembersWithMissingDays
 	* Type : GET

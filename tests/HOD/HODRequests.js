@@ -106,7 +106,8 @@ describe('testing HOD requests', ()=>{
             dayOff : 5
         }) 
         await req.save();
-        const res = await request.get('/viewChangeDayOffRequests').set('auth_token', token);
+        const res = await request.get('/HOD/viewChangeDayOffRequests').set('auth_token', token);
+        console.log(res.body)
         expect(res.body[0].id).toBe(req.id);
     })
     test('testing view change leave requests', async()=>{
