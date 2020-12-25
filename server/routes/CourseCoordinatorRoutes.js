@@ -135,7 +135,11 @@ router.patch('/coordinator/:coordinatorId/courses/:courseId',[authentication],as
 
 router.post('/slot/add', [authentication], async (req,res)=>{
     try {
-        let slotId = await MetaData.find({'sequenceName':`slot`})[0].lastId;
+        let slotId = await MetaData.find({'sequenceName':`slot`})[0].lastId + 1;
+        if(slotId === undefined){
+            slotId = 1;
+        }
+        await MetaDate.updateOne({'sequenceName' : 'slot'}, {'lastId' : slotId}); //not sure
         let sender = req.body.member.id;
         let courseId = req.body.course;
         let instructorId = req.body.instructor;
@@ -158,7 +162,7 @@ router.post('/slot/add', [authentication], async (req,res)=>{
             return instructor === instructorId;
         });
         
-        const responnse = await Course.updateOne({'id' : courseId}, {'numSlots' : course.numSlots + 1}); //not sure
+        // const responnse = await Course.updateOne({'id' : courseId}, {'numSlots' : course.numSlots + 1}); //not sure
         
         slot = new Slot({
             'id': slotId,
@@ -169,7 +173,7 @@ router.post('/slot/add', [authentication], async (req,res)=>{
             'course': courseId,
             'instructor': instructorId
         });
-        slot.save();
+        await slot.save();
         res.status(200).send('slot added successfully');
     }
     catch(err){

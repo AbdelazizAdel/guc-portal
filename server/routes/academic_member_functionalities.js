@@ -44,7 +44,11 @@ router.get('/schedule', async (req, res)=>{
 
 router.post('/replacement/request', async (req, res) => {
     try{
-        let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId;
+        let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId + 1;
+        if(requestId === undefined){
+            requestId = 1;
+        }
+        await MetaDate.updateOne({'sequenceName' : 'request'}, {'lastId' : requestId});
         let courseId = req.body.courseId;
         let sender = req.body.id;
         receiver = req.body.receiver;
@@ -80,7 +84,7 @@ router.post('/replacement/request', async (req, res) => {
             slot: slot,
             attachmentURL : req.body.attachmentURL
         });
-        request.save();
+        await request.save();
         res.status(200).send('Replacement request sent successfully');
     }
     catch(err) {
@@ -91,7 +95,11 @@ router.post('/replacement/request', async (req, res) => {
 
 router.post('/slotlinking/request', [Authentication], async (req, res) => {
     try{
-        let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId;
+        let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId + 1;
+        if(requestId === undefined){
+            requestId = 1;
+        }
+        await MetaDate.updateOne({'sequenceName' : 'request'}, {'lastId' : requestId});
         let courseId = req.body.courseId;
         let sender = req.body.id;
         if(courseId === undefined){
@@ -125,7 +133,7 @@ router.post('/slotlinking/request', [Authentication], async (req, res) => {
             slot: req.body.slot,
             attachmentURL : req.body.attachmentURL
         });
-        request.save();
+        await request.save();
         res.status(200).send('Slot linking request sent successfully');
     }
     catch(err) {
@@ -136,7 +144,11 @@ router.post('/slotlinking/request', [Authentication], async (req, res) => {
 
 router.post('/changedayoff/request', [Authentication], async (req, res) => {
     try{
-        let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId;
+        let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId + 1;
+        if(requestId === undefined){
+            requestId = 1;
+        }
+        await MetaDate.updateOne({'sequenceName' : 'request'}, {'lastId' : requestId});
         let senderId = req.body.id;
         let dayOff = req.body.dayOff;
 
@@ -167,7 +179,7 @@ router.post('/changedayoff/request', [Authentication], async (req, res) => {
             slot: req.body.slot,
             attachmentURL : req.body.attachmentURL
         });
-        request.save();
+        await request.save();
         res.status(200).send('Change day off request sent successfully');
     }
     catch(err) {
@@ -178,7 +190,11 @@ router.post('/changedayoff/request', [Authentication], async (req, res) => {
 
 router.post('/leave/request', [Authentication], async (req, res) => {
     try{
-        let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId;
+        let requestId = await MetaData.find({'sequenceName':`request`})[0].lastId + 1;
+        if(requestId === undefined){
+            requestId = 1;
+        }
+        await MetaDate.updateOne({'sequenceName' : 'request'}, {'lastId' : requestId});
         let senderId = req.body.id;
         let duration = req.body.duration;
         let startDate = req.body.startDate;
@@ -269,7 +285,7 @@ router.post('/leave/request', [Authentication], async (req, res) => {
             slot: req.body.slot,
             attachmentURL : req.body.attachmentURL
         });
-        request.save();
+        await request.save();
         res.status(200).send('Change day off request sent successfully');
     }
     catch(err) {
@@ -322,7 +338,7 @@ router.delete('/request/:requestID', [Authentication], async(req, res) => {
 
 
 router.get('/submittedRequests', [Authentication], async(req, res) => {
-    const {id} = req.body.member;
+    const id = req.body.id;
     if(req.body.status == undefined) {
         const requests = await Request.find().or([{sender : id}, {receiver : id}]);
         return res.send(requests);
