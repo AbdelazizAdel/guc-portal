@@ -7,7 +7,6 @@ const {authentication} = require('./middleware');
 const superagent = require('superagent');
 const StaffMember = require('../models/StaffMember');
 const Joi = require('joi');
-const { func } = require('joi');
 const router = express.Router();
 const day_ms = 86400000; // number of milliseconds in a day
 
@@ -26,20 +25,25 @@ function isValidStaffId(id) {
     return new RegExp('ac-[1-9]\d*').test(id);
 }
 
-router.get('/attendance/:year/:month/:staffId', [authentication], (req, res)=>{
-    console.log('Here')
-    const {year, month, staffId} = req.params;
+router.get('/attendance/:year/:month/:staffId', [authentication], async(req, res)=>{
+    let {year, month, staffId} = req.params;
     if(!isYearValid(year))
         return res.send('this is not a valid year');
     if(!isMonthValid(month))
         return res.send('this is not a valid month');
     if(!isValidStaffId(staffId))
         return res.send('this is not a valid staffmember');
-    const{attendance} = StaffMember.findOne({id: staffId});
+    console.log('here')
+
+    const{attendance} = await StaffMember.findOne({id: staffId});
+    console.log(attendance)
+    if(attendance == undefined)
+        return res.send([]);
+    console.log(attendance)
     year = Number(year);
     month = Number(month);
     let result = [];
-    const curDate = Date.now(), curYear = curDate.getFullYear(), curMonth = curDate.getMonth(), curDay = curDate.getDate();
+    const curDate = new Date(), curYear = curDate.getFullYear(), curMonth = curDate.getMonth(), curDay = curDate.getDate();
     if(year === curYear && month === curMonth) {
         if(curDay >= 11) {
             const start = new Date(year, month, 11).getTime(), end = new Date(year, month, curDay).getTime() + day_ms - 1;
@@ -65,7 +69,8 @@ router.get('/attendance/:year/:month/:staffId', [authentication], (req, res)=>{
             return (signIntime >= start && signIntime <= end) || (signOutTime >= start && signOutTime <= end); 
         });
     }
-    res.send(result);
+//    console.log(result)
+    res.status(200).send(result);
 })
 
 // function for getting attendance records based on the current day
@@ -81,13 +86,14 @@ async function getAttendanceRecords(token, id) {
         month = curMonth == 0 ? 11 : curMonth - 1;
     }
     const response = await superagent.get(`http://localhost:3000/HR/attendance/${year}/${month}/${id}`).set('auth_token', token);
-    const records = response.body.map((elem) => {
-        if(elem.signIn != undefined)
-            elem.signIn = new Date(elem.signIn);
-        if(elem.signOut != undefined)
-            elem.signOut = new Date(elem.signOut);
-        return elem;
-    })
+//    console.log(response.body)
+    let records = response.body.map((elem) => {
+            if(elem.signIn != undefined)
+                elem.signIn = new Date(elem.signIn);
+            if(elem.signOut != undefined)
+                elem.signOut = new Date(elem.signOut);
+            return elem;
+        })
     return {
         records,
         startYear : year,
@@ -182,14 +188,68 @@ router.get('/StaffMembersWithMissingDays', [authentication], async(req, res)=>{
     let missingDays_staff = [];
     for(member of staff){
         let days = await missingDays(member.id, member.dayOff, req.headers.auth_token);
-        console.log(days);
         if(!days){
+            continue;
+        }else{
             missingDays_staff.push({id: member.id, name: member.name, missingDays: days});
         } 
     }
     res.status(200).send(missingDays_staff);
 })
 
+async function missingHours(id, dayOff, token) {
+    const {records, startYear, startMonth} = await getAttendanceRecords(token);
+    const numDays = numOfDays(startYear, startMonth);
+    const firstDay = new Date(startYear, startMonth, 11).getTime();
+    const days = createDays(firstDay, numDays);
+    let result = 0, cnt = 0;
+    for(let i = 0; i < records.length; i++) {
+        if(!isValidRecord(records[i]) || records[i].signIn.getDay() == 5)
+            continue;
+        const{signIn, signOut} = records[i];
+        const year = signIn.getFullYear(), month = signIn.getMonth(), day = signIn.getDate();
+        const start = new Date(year, month, day, 7), end = new Date(year, month, day, 19);
+        days[String(new Date(year, month, day).getTime())] = false;
+        const signInTime = Math.max(start.getTime(), signIn.getTime());
+        const signOutTime = Math.min(end.getTime(), signOut.getTime());
+        const spentTime = (signOutTime - signInTime) / (1000 * 60 * 60);
+        result-=spentTime;
+    }
+    const compensationLeaves = await requestModel.find({
+        sender : id,
+        status : 'accepted',
+        type : 'compensation',
+        startDate : {$gte : new Date(firstDay), $lt : new Date(firstDay + numDays * day_ms)},
+        dayOff :  {$gte : new Date(firstDay), $lt : new Date(firstDay + numDays * day_ms)}
+    });
+    let compensatedDayOffs = {};
+    for(let i = 0; i < compensationLeaves.length; i++) {
+        const d = compensationLeaves[i].dayOff;
+        compensatedDayOffs[String(new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime())] = true;
+    }
+    for(let i = 0; i < numDays; i++) {
+        const d = new Date(firstDay + i * day_ms);
+        if((d.getDay() == dayOff && compensatedDayOffs[String(d.getTime())] == true && !days[String(d.getTime())]) ||
+         (d.getDay() != dayOff && d.getDay() != 5 && !days[String(d.getTime())]))
+            cnt++;
+    }
+    result = result + cnt * 8.4;
+    return result;
+}
+router.get('/StaffMembersWithMissingHours', [authentication], async(req, res)=>{
+    let staff = await StaffMember.find();
+    let missingHours_staff = [];
+    for(member of staff){
+        let hours = await missingHours(member.id, member.dayOff, req.headers.auth_token);
+        console.log(hours);
+        if(!hours){
+            continue;
+        }else{
+            missingHours_staff.push({id: member.id, name: member.name, missingHours: hours});
+        }
+    }
+    res.status(200).send(missingHours_staff);
+})
 router.put('/updateSalary', [authentication], async(req, res)=>{
     const schema = Joi.object({
         newSalary: Joi.number().required(),

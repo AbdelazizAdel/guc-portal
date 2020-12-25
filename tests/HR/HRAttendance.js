@@ -7,7 +7,6 @@ const mongoose = require('mongoose');
 const memberModel = require('../../server/models/StaffMember.js');
 const CourseModel = require('../../server/models/Course.js');
 const departmentModel = require('../../server/models/Department.js');
-const requestModel = require('../../server/models/Request.js'); 
 const bcrypt = require('bcrypt');
 
 
@@ -24,52 +23,22 @@ catch(err) {
 
 beforeEach(async () => {
     await memberModel.deleteMany();
-    await requestModel.deleteMany();
-    // await CourseModel.deleteMany();
-    // await departmentModel.deleteMany();
-    // await createCourse(course, 'analysis');
-    // await createDepartment();
-    //await createStaffMembers();
+    await createStaffMembers();
 });
-
 
 afterAll(async()=>{
     await memberModel.deleteMany();
 })
-
-async function createCourse(courseId, courseName){
-    const courseA = new CourseModel({
-        id: courseId,
-        name: courseName,
-        mainDepartment : 'd-1',
-    });
-    
-    await courseA.save();
-}
-var course = 'CSEN 703';
-
-async function createDepartment(){
-    const department = new departmentModel({
-        id: 'd-1',
-        name: 'Computer Science',
-        HOD: 'ac-1'
-    })
-
-    await department.save();
-}
-
-
 const curDate = new Date(), curYear = curDate.getFullYear(), curMonth = curDate.getMonth(), curDay = curDate.getDate();
 
 let attendance = [];
-for(let i = 11; i < curDay - 2; i++)
-    attendance[attendance.length] = {signIn : new Date(curYear, curMonth, i, 8), signOut : new Date(curYear, curMonth, i, 13)};
-
+for(let j = 11; j < curDay; j++)
+    attendance[attendance.length] = {signIn : new Date(curYear, curMonth, j, 8), signOut : new Date(curYear, curMonth, j, 10)};
 
 async function createStaffMembers(){
     let staff = [];
-    for(let i=2;i<10;i+=2){
- 
+
+    for(let i=2;i<10;i+=2){ 
         const memberA = new memberModel({
             id: 'ac-'+i,
             email: 'ac-'+i+'@guc.edu.eg',
@@ -85,6 +54,7 @@ async function createStaffMembers(){
 }
 
 async function createHR() {
+
     const hr = new memberModel({
         id: 'hr-1',
         email: 'moreda@guc.edu.eg',
@@ -106,25 +76,17 @@ async function createHR() {
     };
 }
 
-describe('testing view staff with missing days/hours', ()=>{
-    test('testing view staff with missing days', async()=>{
+describe('testing view any staff member attendance', ()=>{
+    test('view attendance', async()=>{
         const{hr, plainTextPassword}= await createHR();
         const response = await request.post('/login').send({email : hr.email, password : plainTextPassword});
         const token = response.headers.auth_token;
-        const res = await request.get('/HR/StaffMembersWithMissingDays').set('auth_token', token);
-        // for(let i=0;i<res.body.missingDays.length;i++){
-        //     console.log(new Date(res.body.missingDays[i]))         
-        // }
-        console.log(res.body);
+        const res = await request.get(`/HR/attendance/${curYear}/${curMonth}/ac-2`).set('auth_token', token);
         expect(200);
-    })
-
-    test('testing view staff with missing hours', async()=>{
-        const{hr, plainTextPassword}= await createHR();
-        const response = await request.post('/login').send({email : hr.email, password : plainTextPassword});
-        const token = response.headers.auth_token;
-        const res = await request.get('/HR/StaffMembersWithMissingHours').set('auth_token', token);
-        console.log(res.body);
-        expect(200);
+        console.log(attendance)
+        for(let i=0;i<res.body.length;i++){
+            expect(new Date(res.body[i].signIn)).toEqual(attendance[i].signIn);
+            expect(new Date(res.body[i].signOut)).toEqual(attendance[i].signOut);
+        }
     })
 })
