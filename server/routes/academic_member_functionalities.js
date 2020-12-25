@@ -1,5 +1,5 @@
 const express = require('express');
-const Router = express.Router();
+const router = express.Router();
 const Department = require('../models/Department.js');
 const Member = require('../models/Member.js');
 const Request = require('../models/Request.js');
@@ -25,7 +25,7 @@ router.get('/schedule', [Authentication], async (req, res)=>{
 
         let replacements = await Replacement.find({'instructor' : `${staffId}`});
         replacements = replacements.filter((replacement) => {
-            let dateToUse = Date();
+            let dateToUse =  new Date();
             let lastSaturday = new Date().setDate(dateToUse.getDate() - ((dateToUse.getDay() + 1) % 7));
             let nextFriday = new Date().setDate(lastSaturday.getDate() + 6);
             return replacement.date >= lastSaturday && replacement.date <= nextFriday;
@@ -45,7 +45,7 @@ router.get('/schedule', [Authentication], async (req, res)=>{
 
 router.post('/replacement/request', [Authentication], async (req, res) => {
     try{
-        let requestId = await MetaData.find().and([{'sequenceName':`replacementSlot`}]).lastId;
+        let requestId = await MetaData.find({'sequenceName':`request`}).lastId;
         let courseId = req.body.courseId;
         let sender = req.body.member.id;
         receiver = req.body.receiver;
@@ -63,7 +63,8 @@ router.post('/replacement/request', [Authentication], async (req, res) => {
         }
         const startDate = req.body.startDate;
         const slot = req.body.slot;
-        if(startDate === undefined || Date() > startDate){
+        let submissionDate = new Date();
+        if(startDate === undefined || submissionDate > startDate){
             return res.status(404).send('Please choose a valid date');
         }
         let request = new Request({
@@ -74,13 +75,12 @@ router.post('/replacement/request', [Authentication], async (req, res) => {
             content: req.body.content,
             comment: req.body.comment,
             type: 'ReplacementSlot',
-            submissionDate: Date(),
+            submissionDate: submissionDate,
             startDate: startDate,
             duration: req.body.duration,
             slot: slot,
             attachmentURL : req.body.attachmentURL
         });
-        console.log(typeof(replacementSlot));
         request.save();
         res.status(200).send('Replacement request sent successfully');
     }
@@ -89,3 +89,50 @@ router.post('/replacement/request', [Authentication], async (req, res) => {
         res.status(404).send('fih moshkla ya mealem');
     }
 });
+
+router.post('/slotlinking/request', [Authentication], async (req, res) => {
+    try{
+        let requestId = await MetaData.find({'sequenceName':`request`}).lastId;
+        let courseId = req.body.courseId;
+        let sender = req.body.member.id;
+        if(courseId === undefined){
+            res.status(404).send('Please choose a course');
+        }
+
+        let course = await Course.find({'id': courseId})[0]
+
+        let senderCourse = course.TAs.filter((TA) => {
+            return TA === sender;
+        });
+        if(senderCourse.length < 1){
+            return res.status(404).send('Please choose a valid course');
+        }
+
+        receiver = course.coordinator;
+
+        let submissionDate = new Date();
+
+        let request = new Request({
+            id: requestId,
+            sender: sender,
+            receiver: receiver,
+            status: 'Pending',
+            content: req.body.content,
+            comment: req.body.comment,
+            type: 'slot linking',
+            submissionDate: submissionDate,
+            startDate: req.body.startDate,
+            duration: req.body.duration,
+            slot: req.body.slot,
+            attachmentURL : req.body.attachmentURL
+        });
+        request.save();
+        res.status(200).send('Slot linking request sent successfully');
+    }
+    catch(err) {
+        console.log(err);
+        res.status(404).send('fih moshkla ya mealem');
+    }
+});
+
+module.exports = router;
