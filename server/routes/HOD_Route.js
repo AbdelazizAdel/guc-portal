@@ -9,6 +9,13 @@ const RequestModel = require('../models/Request');
 const SlotModel = require('../models/Slot');
 const {authentication} = require('./middleware');
 
+router.get('/courses',[authentication] ,async(req, res)=>{
+    const department = await DepartmentModel.findOne({HOD: HOD});
+    if(!department)
+        return res.send('invalid data')    
+
+})
+
 router.post('/assignInstructor',[authentication] ,async(req, res)=>{
     const schema = Joi.object({
         courseId: Joi.string().min(8).max(16).required(),

@@ -11,10 +11,10 @@ router.post('/request',async(req,res)=>{
         {
             sender:req.body.sender,
             receiver:req.body.receiver,
-            status:'pending',
+            status:'Pending',
             content:req.body.content,
             submissionDate:Date.now(),
-            type:'slot linking',
+            type:'SlotLinking',
             slot:req.body.slot
         }
     );
@@ -22,9 +22,9 @@ router.post('/request',async(req,res)=>{
     res.status(200).send('The request has bben saved');
 
 })
-router.get('/coordinator/:coordinatorId/courses',[authentication],async(req,res)=>{
-    const coordinatorId = req.params.coordinatorId;
-    const coordinator = await StaffMember.findOne({'id':`${coordinatorId}`});
+router.get('/coordinator/courses',[authentication],async(req,res)=>{
+    const coordinatorId = req.body.member.id;
+    const coordinator =req.body.member;
     if(coordinator == null){
         return res.status(404).send('This member is not found!!');
     }
@@ -41,10 +41,10 @@ router.get('/coordinator/:coordinatorId/courses',[authentication],async(req,res)
     res.status(200).send(response);
 
 })
-router.get('/coordinator/:coordinatorId/courses/:courseId/slot-linking-requests',[authentication],async(req,res)=>{
-    const coordinatorId = req.params.coordinatorId;
+router.get('/coordinator/courses/:courseId/slot-linking-requests',[authentication],async(req,res)=>{
+    const coordinatorId = req.body.member.id;
     const courseId = req.params.courseId;
-    const coordinator = await StaffMember.findOne({'id':`${coordinatorId}`});
+    const coordinator = req.body.member;
     if(coordinator == null){
         return res.status(404).send('The member you are trying to access is not found!!');
     }
@@ -60,7 +60,7 @@ router.get('/coordinator/:coordinatorId/courses/:courseId/slot-linking-requests'
     for(let i = 0;i < slots.length;i++){
     cond.push({'slot':`${slots[i].id}`});
     }
-    const requests = await Request.find({'status':'pending',type:'slot linking'}).or(cond);
+    const requests = await Request.find({'status':'Pending',type:'SlotLinking'}).or(cond);
     console.log(requests);
     let queries = [];
     for(let i = 0;i < requests.length;i++){
@@ -92,12 +92,12 @@ router.get('/coordinator/:coordinatorId/courses/:courseId/slot-linking-requests'
 
 });
 
-router.patch('/coordinator/:coordinatorId/courses/:courseId',[authentication],async (req,res)=>{
-    const coordinatorId = req.params.coordinatorId;
+router.patch('/coordinator/courses/:courseId',[authentication],async (req,res)=>{
+    const coordinatorId = req.body.member.id;
     const courseId = req.params.courseId;
     const requestId = req.body.requestId;
     const requestResponse = req.body.requestResponse;
-    const coordinator = await StaffMember.findOne({'id':`${coordinatorId}`});
+    const coordinator = req.body.member;
     if(coordinator == null){
         return res.status(404).send('Member not found!!');
     }
@@ -113,29 +113,38 @@ router.patch('/coordinator/:coordinatorId/courses/:courseId',[authentication],as
     if(request == null){
         return res.status(404).send('Request not found!!');
     }
-    if(request.status !== 'pending'){
+    if(request.status !== 'Pending'){
         return res.status(400).send('You can\'t modify this request!!');
+    }
+    if(request.type !== 'SlotLinking'){
+        return res.status(400).send('The request provided is not slot linking');
     }
     const slot = await Slot.findOne({'id':`${request.slot}`});
     if(slot.course != courseId){
         return res.status(400).send('Bad request! the slot provided in the request doesn\'t match the course ');
     }
-    if(requestResponse == 'accepted'){
-        const query1 = Request.updateOne({'id':`${requestId}`},{'status':'accepted'});
+    if(requestResponse == 'Accepted'){
+        const query1 = Request.updateOne({'id':`${requestId}`},{'status':'Accepted'});
         const query2 = Slot.updateOne({'id':`${request.slot}`},{'instructor': `${request.sender}`});
         Promise.allSettled([query1,query2]).then((result)=>{
             return res.status(200).send('Request has been successfully accepted!!');
         })
     }
     else{
-        await  Request.updateOne({'id':`${requestId}`},{'status':'rejected'});
+        await  Request.updateOne({'id':`${requestId}`},{'status':'Rejected'});
         return res.status(200).send('Request has been successfully rejected!!');
     }
 });
 
 router.post('/slot/add', [authentication], async (req,res)=>{
     try {
-        let slotId = await MetaData.find({'sequenceName':`slot`})[0].lastId;
+        let slotId = await MetaData.find({'sequenceName':`slot`});
+        slotId = slotId[0].lastId;
+        if(slotId === undefined){
+            slotId = 1;
+        }
+        slotId++;
+        await MetaDate.updateOne({'sequenceName' : 'slot'}, {'lastId' : slotId});
         let sender = req.body.member.id;
         let courseId = req.body.course;
         let instructorId = req.body.instructor;
@@ -144,7 +153,8 @@ router.post('/slot/add', [authentication], async (req,res)=>{
         if(courseId === undefined){
             res.status(404).send('enter course id'); 
         }
-        let course = await Course.find({'id': courseId})[0];
+        let course = await Course.find({'id': courseId});
+        course = course[0];
 
         if(sender !== course.coordinator){
             res.status(404).send('Unauthorized');
@@ -157,6 +167,16 @@ router.post('/slot/add', [authentication], async (req,res)=>{
         let courseInstructor = course.TAs.filter((instructor) => {
             return instructor === instructorId;
         });
+
+        let check = courseInstructor.length > 0;
+
+        let courseInstructor = course.instructors.filter((instructor) => {
+            return instructor === instructorId;
+        });
+        check = check | courseInstructor.length > 0;
+        if(!check){
+            res.status(404).send('fih moshkla ya mealem');
+        }
         
         const responnse = await Course.updateOne({'id' : courseId}, {'numSlots' : course.numSlots + 1}); //not sure
         
@@ -169,7 +189,7 @@ router.post('/slot/add', [authentication], async (req,res)=>{
             'course': courseId,
             'instructor': instructorId
         });
-        slot.save();
+        await slot.save();
         res.status(200).send('slot added successfully');
     }
     catch(err){
@@ -187,10 +207,12 @@ router.delete('/slot/delete', [authentication], async (req,res)=>{
             res.status(404).send('enter slot id'); 
         }
 
-        let slot = await Slot.find({'id' : slotId})[0];
+        let slot = await Slot.find({'id' : slotId});
+        slot = slot[0];
         courseId = slot.course;
 
-        let course = await Course.find({'id': courseId})[0];
+        let course = await Course.find({'id': courseId});
+        course = course
 
         if(sender !== course.coordinator){
             res.status(404).send('Unauthorized');
@@ -216,13 +238,28 @@ router.post('slot/update', [authentication], async (req, res) => {
             res.status(404).send('enter slot id');
         }
 
-        let slot = await Slot.find({'id' : slotId})[0];
+        let slot = await Slot.find({'id' : slotId});
+        slot = slot[0];
         courseId = slot.course;
 
-        let course = await Course.find({'id': courseId})[0];
+        let course = await Course.find({'id': courseId});
+        course = course[0];
 
         if(sender !== course.coordinator){
             res.status(404).send('Unauthorized');
+        }
+
+        let courseInstructor = course.TAs.filter((instructor) => {
+            return instructor === instructorId;
+        });
+        let check = courseInstructor.length > 0;
+
+        courseInstructor = course.instructors.filter((instructor) => {
+            return instructor === instructorId;
+        });
+        check = check | courseInstructor.length > 0;
+        if(!check){
+            res.status(404).send('fih moshkla ya mealem');
         }
 
         const updateResponnse = await Slot.updateOne({'id' : slotId}, {
