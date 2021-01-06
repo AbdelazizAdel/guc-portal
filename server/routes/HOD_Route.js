@@ -9,11 +9,22 @@ const RequestModel = require('../models/Request');
 const SlotModel = require('../models/Slot');
 const {authentication} = require('./middleware');
 
-router.get('/courses',[authentication] ,async(req, res)=>{
-    const department = await DepartmentModel.findOne({HOD: HOD});
-    if(!department)
-        return res.send('invalid data')    
+router.get('/courses', async(req, res)=>{
+    // const department = await DepartmentModel.findOne({HOD: HOD});
+    // if(!department)
+    //     return res.send('invalid data')
+    let course = {id: 'CSEN 701', name: 'Embedded systems'};
+    let course2 = {id: 'CSEN 702', name: 'Microprocessors'};
+    let course3 = {id: 'CSEN 703', name: 'Analysis and design of algorithms'};    
+    let course4 = {id: 'CSEN 704', name: 'Advanced computer lab'};    
 
+    let courses = [];
+    courses.push(course);
+    courses.push(course2);
+    courses.push(course3);
+    courses.push(course4);
+
+    res.send(courses);
 })
 
 router.post('/assignInstructor',[authentication] ,async(req, res)=>{
