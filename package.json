@@ -4,7 +4,8 @@
   "description": "",
   "main": "server/index.js",
   "jest": {
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "testTimeout": 30000
   },
   "scripts": {
     "test": "jest --watchAll",
@@ -18,10 +19,13 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "jest": "^26.6.3",
+    "joi": "^17.3.0",
     "jsonwebtoken": "^8.5.1",
     "mongodb": "^3.6.3",
     "mongoose": "^5.11.7",
+    "mongoose-dummy": "^1.0.8",
     "nodemon": "^2.0.6",
+    "superagent": "^6.1.0",
     "supertest": "^6.0.1"
   }
 }

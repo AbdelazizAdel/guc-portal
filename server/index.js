@@ -4,9 +4,10 @@ const { app } = require('./app.js');
 const dotenv = require('dotenv');
 dotenv.config();
 
-mongoose.connect(process.env.DB_URL, {
+mongoose.connect(process.env.DB_URL_Test, {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+    useFindAndModify: false 
 }).then(() => {
     console.log('Main database connected successfully');
 });
