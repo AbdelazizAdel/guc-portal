@@ -119,39 +119,7 @@ server/index.js
 	 * Type : GET
 	 * Response : missing hours object. Example : { "missingHours": 12 }
 ***
-### 2. HR Functionalities :
 
-* ####  Add/update/delete course slot(s) in his/her course.
-* 
-	* Functionality : course coordinator add a slot to his/her course
-	* Route : /slot/add
-	* Request type : POST
-	* Request body :{"course" : "1234", 'instructor' : '4584205', ''day': 3,
-            'period': 2,
-            'location': 'ay 7aga',
-            'slotType': 'compensation'}
-    * Response : Text indicating whether the slot was added successfully or not.
-    * **
-    * Functionality : course coordinator delete a slot to his/her course
-	* Route : /slot/delete
-	* Request type : DELETE
-	* Request body :{"slot" : "1234"}
-    * Response : Text indicating whether the slot was deleted successfully or not.
-    * **
-    * Functionality : course coordinator update a slot to his/her course
-	* Route : /slot/update
-	* Request type : POST
-	* Request body :{
-        id: 1234,
-        day: 5,
-        period: 2,
-        location: 'D4.101',
-        slotType: 'Compensation',
-        course: 'CSEN501',
-        instructor: 'AY 7AD'
-    }
-    * Response : Text indicating whether the slot was updated successfully or not.
-***
 ### 5. Academic Members Functionalities :
 
 * ####  View their schedule.
@@ -789,4 +757,36 @@ server/index.js
     }
     ```
     * Response : a text indicating the success of accepting or rejecting requests
+***
+* ####  Add/update/delete course slot(s) in his/her course.
+* 
+	* Functionality : course coordinator add a slot to his/her course
+	* Route : /slot/add
+	* Request type : POST
+	* Request body :{"course" : "1234", 'instructor' : '4584205', ''day': 3,
+            'period': 2,
+            'location': 'ay 7aga',
+            'slotType': 'compensation'}
+    * Response : Text indicating whether the slot was added successfully or not.
+    * **
+    * Functionality : course coordinator delete a slot to his/her course
+	* Route : /slot/delete
+	* Request type : DELETE
+	* Request body :{"slot" : "1234"}
+    * Response : Text indicating whether the slot was deleted successfully or not.
+    * **
+    * Functionality : course coordinator update a slot to his/her course
+	* Route : /slot/update
+	* Request type : POST
+	* Request body :{
+        id: 1234,
+        day: 5,
+        period: 2,
+        location: 'D4.101',
+        slotType: 'Compensation',
+        course: 'CSEN501',
+        instructor: 'AY 7AD'
+    }
+    * Response : Text indicating whether the slot was updated successfully or not.
+***
 
