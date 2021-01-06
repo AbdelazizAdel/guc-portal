@@ -119,7 +119,7 @@ server/index.js
 	 * Type : GET
 	 * Response : missing hours object. Example : { "missingHours": 12 }
 ***
-<<<<<<< HEAD
+
 * ####  Add/update/delete course slot(s) in his/her course.
 * 
 	* Functionality : course coordinator add a slot to his/her course
@@ -211,7 +211,7 @@ server/index.js
 	* Request body :{"id" : "1234", 'status' : 'Accepted'}
 	* Response : Text indicating whether the request was made successfully or not.
 ***
-=======
+
 ### 2. HR Functionalities
 * ####  Add Update or Delete a Location
 
@@ -626,8 +626,6 @@ server/index.js
     * Functionality : deleting assignment of academic members to a slot
     * Request type : **PATCH**
     * Parameters : slotId refers to the slot that will be changed
-
-<<<<<<< HEAD
     * Request body :
         ```json
         {"courseId" : "value1"}
@@ -696,7 +694,4 @@ server/index.js
     }
     ```
     * Response : a text indicating the success of accepting or rejecting requests
-=======
-    
->>>>>>> 76a1e9e95f95a8a6f04f70d92363f6230ed971d4
->>>>>>> 7a4cfd16f6cad3fb35f6db73bf528969a28a2e02
+

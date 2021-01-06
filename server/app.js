@@ -1,20 +1,18 @@
 const express = require('express');
-const app = express();
-
-// middleware for transforming String into JSON
-app.use(express.json());
-
-// middleware for using the general routes
+const cors = require('cors');
 const generalRoutes = require('./routes/general.js');
-//middleware for using the Course Instructor routes
 const courseInstructorRoutes = require('./routes/CourseInstructorRoutes.js');
-
+const academicMemberFunctionalitiesRoute = require('./routes/academic_member_functionalities');
 const HRRoutes = require('./routes/HRRoutes.js');
 const courseCoordinatorRoutes = require('./routes/CourseCoordinatorRoutes.js');
+const app = express();
+
+app.use(cors());
+app.use(express.json());
 app.use(generalRoutes);
 app.use(HRRoutes);
 app.use(courseInstructorRoutes);
 app.use(courseCoordinatorRoutes);
-
+app.use(academicMemberFunctionalitiesRoute);
 
 module.exports.app = app;
