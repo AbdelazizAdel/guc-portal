@@ -23,8 +23,6 @@ beforeEach(async () => {
     await requestModel.deleteMany();
 });
 
-
-
 describe("testing missing days route", () => {
 
     test("testing attending all days case", async() => {
@@ -61,7 +59,7 @@ describe("testing missing days route", () => {
         const response = await request.post('/login').send({email : member.email, password : plainTextPassword});
         const token = response.headers.auth_token;
         const res = await request.get('/missingDays').set('auth_token', token);
-        expect(res.body).toHaveLength(10);
+        expect(res.body).toHaveLength(9);
     }, 15000)
 
     test("testing leave requests case", async() => {
@@ -72,8 +70,10 @@ describe("testing missing days route", () => {
         const response = await request.post('/login').send({email : member.email, password : plainTextPassword});
         const token = response.headers.auth_token;
         const res = await request.get('/missingDays').set('auth_token', token);
-        expect(res.body).toHaveLength(7);
+        expect(res.body).toHaveLength(6);
     }, 15000)
+<<<<<<< HEAD
+=======
 
     test("testing compensation requests case", async() => {
         const {member, plainTextPassword} = await createMember();
@@ -88,4 +88,5 @@ describe("testing missing days route", () => {
     }, 15000)
 
 
+>>>>>>> 76a1e9e95f95a8a6f04f70d92363f6230ed971d4
 })
