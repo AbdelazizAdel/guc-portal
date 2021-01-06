@@ -119,10 +119,8 @@ server/index.js
 	 * Type : GET
 	 * Response : missing hours object. Example : { "missingHours": 12 }
 ***
-<<<<<<< HEAD
 ### 2. HR Functionalities :
-=======
-<<<<<<< HEAD
+
 * ####  Add/update/delete course slot(s) in his/her course.
 * 
 	* Functionality : course coordinator add a slot to his/her course
@@ -214,9 +212,8 @@ server/index.js
 	* Request body :{"id" : "1234", 'status' : 'Accepted'}
 	* Response : Text indicating whether the request was made successfully or not.
 ***
-=======
+
 ### 2. HR Functionalities
->>>>>>> 5ad6931206569bfe17df43faf0593b1bd0aabc92
 * ####  Add Update or Delete a Location
 
 	* Functionality : Update a Location 
@@ -359,7 +356,6 @@ server/index.js
 	* Request type : POST
 	* Request body : {{signIn:"UTC 19:00:00"}, {signIn:"UTC 22:00:00"}}
 	* Response : Text indicating whether the Record was Added or Not
-<<<<<<< HEAD
 
 * #### View any staff member attendance record.
 	* Functionality : View any staff member attendance record
@@ -474,28 +470,6 @@ server/index.js
 	* Response : Array of objects {staffId: member.id, name: member.name, course: slot.course, period: slot.period, day: slot.day, location: slot.location}
 ***
     
-=======
-***
-* #### Assign/delete/update a course instructor for each course in his department.
- 	* Functionality : Assign a course instructor for a course
- 	* Route : /HOD/assignInstructor
- 	* Type : POST
- 	* Request body : {"courseId": "CSEN 703", "instructorId": "ac-2"}
- 	* Response : A course model object with the new instructor added to its instructors array.
-   ***
- 	* Functionality : delete a course instructor for a course
- 	* Route : /HOD/deleteInstructor
- 	* Type : DELETE
- 	* Request body : {"courseId": "CSEN 703", "instructorId": "ac-2"}
- 	* Response : A course model object with the instructor reomoved from its instructors array.
-   ***
-   	* Functionality : update a course instructor for a course
- 	* Route : /HOD/updateInstructor
- 	* Type : PUT
- 	* Request body : {"courseId": "CSEN 703", "instructorId1": "ac-2", "instructorId2": "ac-10"}
- 	* Response : A course model object with instructor1 removed from its instructors array and instructor2 added to it.
- ***
->>>>>>> 5ad6931206569bfe17df43faf0593b1bd0aabc92
 
   * #### View all the staff in his/her department or per course along with their profiles.
  	* Functionality : view staff members in the HOD department 
@@ -747,8 +721,6 @@ server/index.js
     * Functionality : deleting assignment of academic members to a slot
     * Request type : **PATCH**
     * Parameters : slotId refers to the slot that will be changed
-
-<<<<<<< HEAD
     * Request body :
         ```json
         {"courseId" : "value1"}
@@ -817,7 +789,4 @@ server/index.js
     }
     ```
     * Response : a text indicating the success of accepting or rejecting requests
-=======
-    
->>>>>>> 76a1e9e95f95a8a6f04f70d92363f6230ed971d4
->>>>>>> 7a4cfd16f6cad3fb35f6db73bf528969a28a2e02
+

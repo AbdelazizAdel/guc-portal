@@ -1,28 +1,22 @@
 const express = require('express');
+const cors = require('cors');
+const generalRoutes = require('./routes/general.js');
+const courseInstructorRoutes = require('./routes/CourseInstructorRoutes.js');
+const academicMemberFunctionalitiesRoute = require('./routes/academic_member_functionalities');
+const courseCoordinatorRoutes = require('./routes/CourseCoordinatorRoutes.js');
+const HOD = require('./routes/HOD_Route.js');
+const HR = require('./routes/HR.js');
 const app = express();
 
 
+
+app.use(cors());
 app.use(express.json());
-
-// middleware for using the general routes
-const generalRoutes = require('./routes/general.js');
-//middleware for using the Course Instructor routes
-const courseInstructorRoutes = require('./routes/CourseInstructorRoutes.js');
-//middleware for using the course coordinator routes
-const courseCoordinatorRoutes = require('./routes/CourseCoordinatorRoutes.js');
-//middleware for using the HOD routes
-const HOD = require('./routes/HOD_Route.js');
-//middleware for using the HR routes
-const HR = require('./routes/HR.js');
-
 app.use(generalRoutes);
-
 app.use(courseInstructorRoutes);
-
 app.use(courseCoordinatorRoutes);
-
+app.use(academicMemberFunctionalitiesRoute);
 app.use('/HOD', HOD);
-
 app.use('/HR', HR);
 
 module.exports.app = app;
