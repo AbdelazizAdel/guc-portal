@@ -4,12 +4,13 @@ const { app } = require('./app.js');
 const dotenv = require('dotenv');
 dotenv.config();
 
-mongoose.connect("mongodb+srv://ahmed:rezik@cluster0.6t817.mongodb.net/test?retryWrites=true&w=majority", {
+mongoose.connect(process.env.DB_URL_Test, {
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+    useFindAndModify: false 
 }).then(() => {
     console.log('Main database connected successfully');
 });
-app.listen(5000, () => {
+app.listen(process.env.PORT, () => {
     console.log(`Server listening at port ${process.env.PORT}`);
 });

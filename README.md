@@ -120,6 +120,9 @@ server/index.js
 	 * Response : missing hours object. Example : { "missingHours": 12 }
 ***
 <<<<<<< HEAD
+### 2. HR Functionalities :
+=======
+<<<<<<< HEAD
 * ####  Add/update/delete course slot(s) in his/her course.
 * 
 	* Functionality : course coordinator add a slot to his/her course
@@ -213,6 +216,7 @@ server/index.js
 ***
 =======
 ### 2. HR Functionalities
+>>>>>>> 5ad6931206569bfe17df43faf0593b1bd0aabc92
 * ####  Add Update or Delete a Location
 
 	* Functionality : Update a Location 
@@ -355,6 +359,122 @@ server/index.js
 	* Request type : POST
 	* Request body : {{signIn:"UTC 19:00:00"}, {signIn:"UTC 22:00:00"}}
 	* Response : Text indicating whether the Record was Added or Not
+<<<<<<< HEAD
+
+* #### View any staff member attendance record.
+	* Functionality : View any staff member attendance record
+	* Route : /HR/attendance/:year/:month/:staffId
+	* Type : GET
+	* Parameters : staffId is the ID of the staff member we are getting his attendance record
+	* Response : Array of attendance objects. Example attendance object :
+	{ "signIn": "2020-12-25T12:52:51.344Z",
+  "SignOut": "2020-11-25T12:52:51.344Z" } 
+***
+
+* #### View staff members with missing hours/days.
+	* Functionality : View staff members with missing hours
+	* Route : /HR/StaffMembersWithMissingHours
+	* Type : GET
+	* Response : Array of objects {id: member.id, name: member.name, missingHours: hours}
+  ***
+	* Functionality : View staff members with missing days
+	* Route : /HR/StaffMembersWithMissingDays
+	* Type : GET
+	* Response : Array of objects {id: member.id, name: member.name, missingDays: days}
+***
+
+* #### Update the salary of a staff member.
+	* Functionality : Update the salary of a staff member
+	* Route : /HR/updateSalary
+	* Type : PUT
+	* Request body : {"newSalary" : 7000, "staffId" : "ac-2"}
+	* Response : Text indicating that the salary has been updated successfully
+***
+
+### 3.1 HOD Functionalities:
+* #### Assign/delete/update a course instructor for each course in his department.
+	* Functionality : Assign a course instructor for a course
+	* Route : /HOD/assignInstructor
+	* Type : POST
+	* Request body : {"courseId": "CSEN 703", "instructorId": "ac-2"}
+	* Response : A course model object with the new instructor added to its instructors array.
+  ***
+	* Functionality : delete a course instructor for a course
+	* Route : /HOD/deleteInstructor
+	* Type : DELETE
+	* Request body : {"courseId": "CSEN 703", "instructorId": "ac-2"}
+	* Response : A course model object with the instructor reomoved from its instructors array.
+  ***
+  	* Functionality : update a course instructor for a course
+	* Route : /HOD/updateInstructor
+	* Type : PUT
+	* Request body : {"courseId": "CSEN 703", "instructorId1": "ac-2", "instructorId2": "ac-10"}
+	* Response : A course model object with instructor1 removed from its instructors array and instructor2 added to it.
+***
+
+* #### View all the staff in his/her department or per course along with their profiles.
+	* Functionality : view staff members in the HOD department 
+	* Route : /HOD/viewStaff
+	* Type : GET
+	* Request body :  {"courseId": "CSEN 703"}(to view the staff of a single course) 
+	* Response : Array of objects (represents the staff of this single course) {id: member.id, name: member.name, email: member.email,
+        gender: member.gender, salary: member.salary, officeLoc: member.officeLoc,
+         dayOff: member.dayOff, department: member.department}
+	OR	Array of objects {'courseId': course.id, 'staff': staff}(all the staff in the department)
+***
+
+* #### View the day off of all the staff/ a single staff in his/her department.
+	* Functionality : View the day off of all the staff/ a single staff
+	* Route : /HOD/viewDayOff
+	* Type : GET
+	* Request body : {"staffId" : "ac-2"}(to view the day off of a single staff)
+	* Response : Object {name: staffMember.name, id: staffMember.id, dayOff: staffMember.dayOff} (a single staff)
+	OR Array of objects (all the staff in the department)
+***
+* #### View all the requests "change day off/leave" sent by staff members in his/her department.
+	* Functionality : view all change day off requests 
+	* Route : /HOD/viewChangeDayOffRequests
+	* Type : GET
+	* Response : Array of request model objects
+  ***
+	* Functionality : view all leave requests 
+	* Route : /HOD/viewLeaveRequests
+	* Type : GET
+	* Response : Array of request model objects
+***
+
+* #### Accept a request. if a request is accepted, appropriate logic should be executed to handle this request.
+	* Functionality : accept a request 
+	* Route : /HOD/request
+	* Type : POST
+	* Request body : {"requestId": 'req-1', status : "Accepted"}
+	* Response : Text indicating that the request has been accepted successfully
+***
+
+* #### Reject a request, and optionally leave a comment as to why this request was rejected.
+	* Functionality : reject a request
+	* Route : /HOD/request
+	* Type : POST
+	* Request body : {"requestId": 'req-1', status : "Rejected"} 
+	* Response : Text indicating that the request has been rejected successfully
+***
+
+* #### View the coverage of each course in his/her department.
+	* Functionality : View the coverage of each course in the department of that HOD
+	* Route : /HOD/viewCoverage
+	* Type : GET
+	* Response : Array of objects {courseId: course.id, name: course.name, coverage: coverage}
+***
+
+* #### View teaching assignments (which staff members teach which slots) of course ordered byhis department.
+	* Functionality : View teaching assignments
+	* Route : /HOD/viewTeachingAssignments/:courseId
+	* Type : GET
+	* Parameters : courseId is the id of the course we want to get its teaching assignments 
+	* Response : Array of objects {staffId: member.id, name: member.name, course: slot.course, period: slot.period, day: slot.day, location: slot.location}
+***
+    
+=======
 ***
 * #### Assign/delete/update a course instructor for each course in his department.
  	* Functionality : Assign a course instructor for a course
@@ -375,6 +495,7 @@ server/index.js
  	* Request body : {"courseId": "CSEN 703", "instructorId1": "ac-2", "instructorId2": "ac-10"}
  	* Response : A course model object with instructor1 removed from its instructors array and instructor2 added to it.
  ***
+>>>>>>> 5ad6931206569bfe17df43faf0593b1bd0aabc92
 
   * #### View all the staff in his/her department or per course along with their profiles.
  	* Functionality : view staff members in the HOD department 
