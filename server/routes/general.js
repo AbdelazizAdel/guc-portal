@@ -306,16 +306,15 @@ router.get('/missingHours', [authentication], async(req, res) => {
     const days = createDays(firstDay, numDays);
     let result = 0, cnt = 0;
     for(let i = 0; i < records.length; i++) {
-        if(!isValidRecord(records[i]) || records[i].signIn.getDay() == 5)
+        if(!isValidRecord(records[i]))
             continue;
         const{signIn, signOut} = records[i];
         const year = signIn.getFullYear(), month = signIn.getMonth(), day = signIn.getDate();
-        const start = new Date(year, month, day, 7), end = new Date(year, month, day, 19);
         days[String(new Date(year, month, day).getTime())] = false;
         const signInTime = Math.max(start.getTime(), signIn.getTime());
         const signOutTime = Math.min(end.getTime(), signOut.getTime());
         const spentTime = (signOutTime - signInTime) / (1000 * 60 * 60);
-        result-=spentTime;
+        result-= spentTime;
     }
     const compensationLeaves = await requestModel.find({
         sender : id,
@@ -327,7 +326,7 @@ router.get('/missingHours', [authentication], async(req, res) => {
     let compensatedDayOffs = {};
     for(let i = 0; i < compensationLeaves.length; i++) {
         const d = compensationLeaves[i].dayOff;
-        compensatedDayOffs[String(new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime())] = true;
+        compensatedDayOffs[String(new Date(d.getFullYear(), d.getMonth(), d,getDate()).getTime())] = true;
     }
     for(let i = 0; i < numDays; i++) {
         const d = new Date(firstDay + i * day_ms);
@@ -335,8 +334,8 @@ router.get('/missingHours', [authentication], async(req, res) => {
          (d.getDay() != dayOff && d.getDay() != 5 && !days[String(d.getTime())]))
             cnt++;
     }
-    result = result + cnt * 8.4;
-    res.send({missingHours : result});
+    result = result + cnt * 8.24;
+    res.send(result);
 })
 
 module.exports = router;
