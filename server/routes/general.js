@@ -12,24 +12,24 @@ const day_ms = 86400000; // number of milliseconds in a day
 router.post('/login', async(req, res) => {
     const {email, password} = req.body;
     if(email == undefined)
-        return res.send("please enter an email");
+        return res.status(401).send("please enter an email");
     if(password == undefined)
-        return res.send('please enter a password');
+        return res.status(401).send('please enter a password');
     if(typeof(email) != 'string' || typeof(password) != 'string')
-        return res.send('please enter valid data types');
+        return res.status(401).send('please enter valid data types');
     const member = await memberModel.findOne({email});
     if(member == null)
-        return res.send("There is no user with such email");
+        return res.status(401).send("There is no user with such email");
     const isCorrect = await bcrypt.compare(password, member.password);
     if(!isCorrect)
-        return res.send('wrong password');
+        return res.status(401).send('wrong password');
     await memberModel.updateOne({email}, {loggedIn : true});
     const token = jwt.sign({id : member.id}, process.env.TOKEN_SECRET);
     if(member.firstLogin == undefined || member.firstLogin == true) {
         await memberModel.updateOne({email}, {firstLogin : false});
         return res.header('auth_token', token).send('please change your password');
     }
-    res.header('auth_token', token).send("logged in successfully");
+    res.header('auth_token', token).send(member.id);
 });
 
 //route for logging out
