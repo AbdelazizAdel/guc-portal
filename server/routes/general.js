@@ -49,12 +49,12 @@ router.post('/changePassword', [authentication], async(req, res) => {
     if(oldPass == undefined)
         return res.status(400).send('old password is required');
     if(newPass == undefined)
-        return res.tatus(400).send('new Password is required');
+        return res.status(400).send('new Password is required');
     if(typeof(oldPass) != 'string' || typeof(newPass) != 'string')
-        return res.tatus(400).send('please enter valid data types');
+        return res.status(400).send('please enter valid data types');
     const isCorrect = await bcrypt.compare(oldPass, member.password);
     if(!isCorrect)
-        return res.tatus(400).send('old password is incorrect');
+        return res.status(400).send('old password is incorrect');
     const salt = await bcrypt.genSalt();
     const hashedPass = await bcrypt.hash(newPass, salt);
     await memberModel.updateOne({id : member.id}, {password : hashedPass});
