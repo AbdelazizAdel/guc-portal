@@ -7,10 +7,14 @@ const courseCoordinatorRoutes = require('./routes/CourseCoordinatorRoutes.js');
 const HOD = require('./routes/HOD_Route.js');
 const HR = require('./routes/HR.js');
 const app = express();
+const cors_config = {
+    origin: "*",
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    optionsSuccessStatus: 204,
+    exposedHeaders : 'auth_token',
+}
 
-
-
-app.use(cors());
+app.use(cors(cors_config));
 app.use(express.json());
 app.use(generalRoutes);
 app.use(courseInstructorRoutes);
