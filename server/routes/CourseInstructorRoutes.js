@@ -111,7 +111,7 @@ router.get('/instructors/courses',[authentication],async(req,res)=>{
     let coursesId = [];
     for(let i = 0 ; i<instructorCourses.length;i++){
         const courseId = {};
-        courseId.courseId= instructorCourses[i].name;
+        courseId.courseId= instructorCourses[i].id;
         courseId.courseName = instructorCourses[i].name;
         coursesId.push(courseId);
     }
