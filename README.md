@@ -503,7 +503,7 @@ server/index.js
 ### 3.2 Course Instructor Functionalities
 * #### View the coverage of course(s) he/she is assigned to.
     * Functionality : view the percentage of slots assigned to academic members relative to the total number of slots.
-    * Route : ```/instructors/:instructorId/coverage```
+    * Route : ```/instructors/coverage```
     * Request type : **GET**
     * Response : an object containing attributes the courses this instructor is assigned to as the key and the percentage is given as the value.
     * Example:
