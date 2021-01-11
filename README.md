@@ -594,7 +594,7 @@ server/index.js
             * Example :
             ```json 
             {
-                "Advanced Computer Lab" :
+                "CSEN 703" :
                     { 
                       "TAsAssigned" : true,
                       "TAs":[

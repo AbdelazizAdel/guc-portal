@@ -157,7 +157,7 @@ router.get('/instructors/courses/:courseId/staff-members',[authentication],async
             output.push([{id:'Not assigned yet',name:'Not assigned yet'}]);
         }
         }
-            response[`${course.name}`] = {TAsAssigned:TAsAssigned,TAs:output[0],instructors:output[1]};
+            response[`${course.id}`] = {TAsAssigned:TAsAssigned,TAs:output[0],instructors:output[1]};
             res.status(200).send(response);
 
         }
