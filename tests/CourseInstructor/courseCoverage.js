@@ -44,8 +44,8 @@ describe('Testing Course Coverage route',()=>{
         await slot1.save();
         await slot2.save();
         const output =  await(await request.get('/instructors/coverage').set('auth_token',token)).body;
-        expect(output['Advanced Computer Lab']).toBe(0);
-        expect(output['SoftwareEngineering']).toBe(undefined);
+        expect(output['course1']).toBe(0);
+        expect(output['course2']).toBe(undefined);
     },10000)
     ,
     it('A case where the slot model will return based on Instructors',async ()=>{
@@ -61,8 +61,8 @@ describe('Testing Course Coverage route',()=>{
         await slot1.save();
         await slot2.save();
         const output = await (await request.get('/instructors/coverage').set('auth_token',token)).body;
-        expect(output['Advanced Computer Lab']).toBe(100.0/6);
-        expect(output['SoftwareEngineering']).toBe(undefined);
+        expect(output['course1']).toBe(100.0/6);
+        expect(output['course2']).toBe(undefined);
     },10000),
     it('A case where the slot model will return multiple records',async ()=>{
         const member =await createStaffMamber('Ashry19','ashry@yahoo.com','ashduia','Mohammed Ashry','male',7000,3,'C6.305',6,[],undefined,true,[],true,'dep1');
@@ -80,8 +80,8 @@ describe('Testing Course Coverage route',()=>{
         await slot2.save();
         await slot3.save();
         const output = await (await request.get('/instructors/coverage').set('auth_token',token)).body;
-        expect(output['Advanced Computer Lab']).toBe(2*100.0/10);
-        expect(output['SoftwareEngineering']).toBe(undefined);
+        expect(output['course1']).toBe(2*100.0/10);
+        expect(output['course2']).toBe(undefined);
     },10000),
     it('A case where the instructor is assigned to multiple courses',async ()=>{
         const member =await createStaffMamber('Ashry19','ashry@yahoo.com','ashduia','Mohammed Ashry','male',7000,3,'C6.305',6,[],undefined,true,[],true,'dep1');
@@ -99,7 +99,7 @@ describe('Testing Course Coverage route',()=>{
         await slot2.save();
         await slot3.save();
         const output = await (await request.get('/instructors/coverage').set('auth_token',token)).body;
-        expect(output['Advanced Computer Lab']).toBe(2*100.0/10);
-        expect(output['SoftwareEngineering']).toBe(100.0/10);
+        expect(output['course1']).toBe(2*100.0/10);
+        expect(output['course2']).toBe(100.0/10);
     },10000)
 })

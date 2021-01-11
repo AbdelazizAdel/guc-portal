@@ -91,10 +91,10 @@ router.get('/instructors/coverage',[authentication],async(req,res)=>{
         const courseSlots = await Slot.find().and([{'instructor':{"$exists":true}},{'course':instructorCourses[i].id}]);
         const count = courseSlots.length;
         if(instructorCourses[i].numSlots == 0){
-            response[`${instructorCourses[i].name}`] = null
+            response[`${instructorCourses[i].id}`] = null
         }
         else{
-        response[`${instructorCourses[i].name}`] = 100.0*count/instructorCourses[i].numSlots;
+        response[`${instructorCourses[i].id}`] = 100.0*count/instructorCourses[i].numSlots;
         }
     }
     res.status(200).send(response);
