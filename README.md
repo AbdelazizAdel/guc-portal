@@ -509,8 +509,8 @@ server/index.js
     * Example:
     ```json
     {
-        "Advanced Computer Lab":50,
-        "Software Engineering":25
+        "CSEN 703":50,
+        "CSEN 501":25
     }
     ```
 ***
@@ -594,7 +594,7 @@ server/index.js
             * Example :
             ```json 
             {
-                "Advanced Computer Lab" :
+                "CSEN 703" :
                     { 
                       "TAsAssigned" : true,
                       "TAs":[
