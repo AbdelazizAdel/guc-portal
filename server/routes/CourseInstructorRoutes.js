@@ -24,7 +24,6 @@ router.post('/StaffMembers',(req,res)=>{
             "attendance": req.body.attendance,
             "department":req.body.department
           })
-        console.log(typeof(member));
         member.save((err,doc)=>{
             if(err) return console.log(err);
             console.log('Document inserted successfully');
@@ -104,7 +103,6 @@ router.get('/instructors/coverage',[authentication],async(req,res)=>{
 router.get('/instructors/courses',[authentication],async(req,res)=>{
     const instructorId = req.body.member.id;
     const instructorCourses = await Course.find({'instructors':{"$in":`${instructorId}`}});
-    //console.log(instructorCourses);
     if(instructorCourses.length == 0){
         return res.status(403).send('You are not allowed to assign slots');
     }
@@ -150,8 +148,11 @@ router.get('/instructors/courses/:courseId/staff-members',[authentication],async
             const desiredOutput = result[i].value.map((elem)=>{
              return {id:elem.id,name:elem.name};
          });
+         if(i==0){
          TAsAssigned = true;
+         }
          output.push(desiredOutput);
+
         }
         else{
             output.push([{id:'Not assigned yet',name:'Not assigned yet'}]);
@@ -268,7 +269,9 @@ router.get('/staff-members/courses',[authentication],async(req,res)=>{
             const desiredOutput = result[i].value.map((elem)=>{
              return {id:elem.id,name:elem.name};
          });
-         TAsAssigned.push(true);
+         if(i==0){
+            TAsAssigned.push(true);
+         }
          output.push(desiredOutput);
         }
         else{
@@ -277,7 +280,7 @@ router.get('/staff-members/courses',[authentication],async(req,res)=>{
         }
         }
          for(let i = 0, j = 0;i<instructorCourses.length;i++,j+=2){
-            response[`${instructorCourses[i].name}`] = {TAsAssigned:TAsAssigned[i],TAs:output[j],instructors:output[j+1]};
+            response[`${instructorCourses[i].id}`] = {TAsAssigned:TAsAssigned[i],TAs:output[j],instructors:output[j+1]};
          
         }
         res.status(200).send(response);
