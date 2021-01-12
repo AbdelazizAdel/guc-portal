@@ -115,7 +115,7 @@ router.route("/getLocations",auth)
             res.status(400).send("Failed to get all Locations")
         }
         else{
-            res.status(200).send(doc);
+            res.status(200).send(doc)
         }
     })
 
@@ -194,6 +194,27 @@ faculty.save((err,doc) =>{
 
 })
 })
+
+//* Get all Faculties
+router.route("/getFaculties",auth)
+.get(
+    async(req,res)=>{
+        if(!isHR(req.body.member.id)){
+            res.status(405).send("Error Invalid Credentials")
+            return
+        }
+        FacultyModel.find({},(err,doc)=>{
+            if(err) {
+                res.status(400).send("Failed to get Faculties")
+                return
+            }
+            else{
+                res.status(200).send(doc);
+            }
+        })
+    }
+
+)
 
 //* Add Delete Update a Department under a faculty
 
@@ -278,6 +299,20 @@ router.route("/opDepartment/:id",auth)
     }
 )
 
+router.route("/getDepertament",auth)
+.get(async(req,res)=>{
+    DepartmentModel.find({},(err,doc)=>{
+        if (err){
+            res.status(400).send("Failed to get Department")
+            return
+        }
+        else{
+            console.log('Department Located Successfully');
+            res.status(200).send(doc);
+        }
+    })
+})
+
 // * Add update or delete a course
 
 router.route("/opCourse/:id",auth)
@@ -335,7 +370,7 @@ router.route("/addCourse",auth)
     )
     course.save((err,doc) => {
         if(err){   
-            res.status(400).send('Course Deleted Successfully');
+            res.status(400).send('Course Not Deleted');
             return console.log(err);}
         else
         { 
@@ -343,6 +378,19 @@ router.route("/addCourse",auth)
         res.status(200).send('Course updated Successfully');
         }
     
+    })
+})
+router.route("/getCourse",auth)
+.get(async(req,res)=>{
+    CourseModel.find({},(err,doc)=>{
+        if(err){   
+            res.status(400).send('Course Not Found');
+            return console.log(err);}
+        else
+        { 
+        console.log("Updated Successfully");
+        res.status(200).send(doc);
+        }
     })
 })
 //* Update / Delete Staff Members
