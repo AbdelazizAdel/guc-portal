@@ -513,6 +513,22 @@ router.route("/addMember",auth)
    }
 }) 
 
+router.route("/getStaffMembers",auth)
+.get(async(req,res) =>{
+    if(!isHR(req.body.member.id)){
+        res.status(405).send("Error Invalid Credentials")
+        return
+    }
+    MemberModel.find({}, (err,doc)=>{
+        if(err){
+            res.status(400).send("Failed to Find Members")
+        }
+        else{
+            res.status(200).send(doc)
+        }
+    })
+})
+
 router.route("/addSignIn/:id",auth)
 .post(async(req,res)=>{
     // body{
