@@ -170,7 +170,7 @@ router.post('/slot/add', [authentication], async (req,res)=>{
 
         let check = courseInstructor.length > 0;
 
-        let courseInstructor = course.instructors.filter((instructor) => {
+        courseInstructor = course.instructors.filter((instructor) => {
             return instructor === instructorId;
         });
         check = check | courseInstructor.length > 0;
