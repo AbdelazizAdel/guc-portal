@@ -7,6 +7,8 @@ const {authentication} = require('./middleware');
 const superagent = require('superagent');
 const router = express.Router();
 const day_ms = 86400000; // number of milliseconds in a day
+const dotenv = require('dotenv');
+dotenv.config();
 
 //route for logging in
 router.post('/login', async(req, res) => {
@@ -71,16 +73,16 @@ router.post('/updateProfile', [authentication], async(req, res) => {
     const {gender, email, member} = req.body;
     if(gender !== undefined) {
         if(gender !== 'male' && gender !== 'female')
-            return res.send('this is not a valid gender');
+            return res.status(401).send('this is not a valid gender');
         if(typeof(gender) != 'string')
-            return res.send('please enter valid data types');
+            return res.status(401).send('please enter valid data types');
         member.gender = gender;
     }
     if(email !== undefined) {
         if(!emailIsValid(email))
-            return res.send('this is not a valid email');
+            return res.status(401).send('this is not a valid email');
         if(typeof(email) !== 'string')
-            return res.send('please enter valid data types');
+            return res.status(401).send('please enter valid data types');
         member.email = email;
     }
     await memberModel.updateOne({id : member.id}, member);
@@ -140,7 +142,7 @@ function isYearValid(year) {
 
 // function which checks for valid month
 function isMonthValid(month) {
-    return /^(0[0-9]|1[0-1])$/.test(month);
+    return /^([0-9]|1[0-1])$/.test(month);
 }
 
 // route for viewing attendance of a specific month
@@ -197,7 +199,8 @@ async function getAttendanceRecords(token) {
         year = curMonth == 0 ? curYear - 1 : curYear;
         month = curMonth == 0 ? 11 : curMonth - 1;
     }
-    const response = await superagent.get(`http://localhost:3000/attendance/${year}/${month}`).set('auth_token', token);
+    const response = await superagent.get(`http://localhost:${process.env.PORT}/attendance/${year}/${month}`).set('auth_token', token);
+    console.log(response);
     const records = response.body.map((elem) => {
         if(elem.signIn != undefined)
             elem.signIn = new Date(elem.signIn);
