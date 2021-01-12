@@ -102,6 +102,25 @@ router.route("/addLocation",auth)
    
 })
 
+// * Get all Locations
+
+router.route("/getLocations",auth)
+.get(async(req, res)=>{
+    if(!isHR(req.body.member.id)){
+        res.status(405).send("Error Invalid Credentials")
+        return
+    }
+    LocationModel.find({},(err,doc) =>{
+        if(err){
+            res.status(400).send("Failed to get all Locations")
+        }
+        else{
+            res.status(200).send(doc);
+        }
+    })
+
+})
+
 // * update or delete a Faculty
 router.route("/opFaculty/:id",auth)
 .delete(async(req, res)=>{
