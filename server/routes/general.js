@@ -50,9 +50,9 @@ router.get('/profile', [authentication], async (req, res) => {
 //route for changing password
 router.post('/changePassword', [authentication], async(req, res) => {
     const {oldPass, newPass, member} = req.body;
-    if(oldPass == undefined)
+    if(oldPass === undefined)
         return res.status(401).send('old password is required');
-    if(newPass == undefined)
+    if(newPass === undefined || newPass === "")
         return res.status(401).send('new Password is required');
     if(typeof(oldPass) != 'string' || typeof(newPass) != 'string')
         return res.status(401).send('please enter valid data types');
@@ -80,15 +80,17 @@ router.post('/updateProfile', [authentication], async(req, res) => {
             return res.status(401).send('please enter valid data types');
         member.gender = gender;
     }
+    const data = {};
     if(email !== undefined) {
         if(!emailIsValid(email))
             return res.status(401).send('this is not a valid email');
         if(typeof(email) !== 'string')
             return res.status(401).send('please enter valid data types');
         member.email = email;
+        data.email = email;
     }
     await memberModel.updateOne({id : member.id}, member);
-    res.send('profile updated successfully');
+    res.send(data);
 })
 
 //route for signing in
@@ -346,7 +348,7 @@ router.get('/missingHours', [authentication], async(req, res) => {
 // route for getting the department of the user using the department id
 router.get('/departmentId', [authentication], async(req, res) => {
     try {
-        const department = await departmentModel.find({id : req.body.member.department});
+        const department = await departmentModel.findOne({id : req.body.member.department});
         res.send(department);
     }
     catch(e) {
@@ -357,7 +359,7 @@ router.get('/departmentId', [authentication], async(req, res) => {
 // route for getting the faculty of the user using the department id
 router.get('/facultyId', [authentication], async(req, res) => {
     try {
-        const faculty = await facultyModel.find({'departments':{"$in":`${req.body.member.department}`}});
+        const faculty = await facultyModel.findOne({'departments':{"$in":`${req.body.member.department}`}});
         res.send(faculty);
     }
     catch(e) {
