@@ -7,6 +7,8 @@ const {authentication} = require('./middleware');
 const superagent = require('superagent');
 const router = express.Router();
 const day_ms = 86400000; // number of milliseconds in a day
+const dotenv = require('dotenv');
+dotenv.config();
 
 //route for logging in
 router.post('/login', async(req, res) => {
@@ -140,7 +142,7 @@ function isYearValid(year) {
 
 // function which checks for valid month
 function isMonthValid(month) {
-    return /^(0[0-9]|1[0-1])$/.test(month);
+    return /^([0-9]|1[0-1])$/.test(month);
 }
 
 // route for viewing attendance of a specific month
