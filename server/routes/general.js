@@ -4,6 +4,7 @@ const express = require('express');
 const memberModel = require('../models/StaffMember');
 const requestModel = require('../models/Request');
 const departmentModel = require('../models/Department');
+const facultyModel = require('../models/Faculty');
 const {authentication} = require('./middleware');
 const superagent = require('superagent');
 const router = express.Router();
@@ -343,9 +344,25 @@ router.get('/missingHours', [authentication], async(req, res) => {
 })
 
 // route for getting the department of the user using the department id
-router.post('/departmentId', [authentication], async(req, res) => {
-    const department = await departmentModel.find({id : req.body.department});
-    res.send(department);
+router.get('/departmentId', [authentication], async(req, res) => {
+    try {
+        const department = await departmentModel.find({id : req.body.member.department});
+        res.send(department);
+    }
+    catch(e) {
+        console.log(e);
+    }
+})
+
+// route for getting the faculty of the user using the department id
+router.get('/facultyId', [authentication], async(req, res) => {
+    try {
+        const faculty = await facultyModel.find({'departments':{"$in":`${req.body.member.department}`}});
+        res.send(faculty);
+    }
+    catch(e) {
+        console.log(e);
+    }
 })
 
 module.exports = router;
