@@ -91,10 +91,10 @@ router.get('/instructors/coverage',[authentication],async(req,res)=>{
         const courseSlots = await Slot.find().and([{'instructor':{"$exists":true}},{'course':instructorCourses[i].id}]);
         const count = courseSlots.length;
         if(instructorCourses[i].numSlots == 0){
-            response[`${instructorCourses[i].name}`] = null
+            response[`${instructorCourses[i].id}`] = null
         }
         else{
-        response[`${instructorCourses[i].name}`] = 100.0*count/instructorCourses[i].numSlots;
+        response[`${instructorCourses[i].id}`] = 100.0*count/instructorCourses[i].numSlots;
         }
     }
     res.status(200).send(response);
@@ -111,7 +111,7 @@ router.get('/instructors/courses',[authentication],async(req,res)=>{
     let coursesId = [];
     for(let i = 0 ; i<instructorCourses.length;i++){
         const courseId = {};
-        courseId.courseId= instructorCourses[i].name;
+        courseId.courseId= instructorCourses[i].id;
         courseId.courseName = instructorCourses[i].name;
         coursesId.push(courseId);
     }
@@ -150,14 +150,16 @@ router.get('/instructors/courses/:courseId/staff-members',[authentication],async
             const desiredOutput = result[i].value.map((elem)=>{
              return {id:elem.id,name:elem.name};
          });
+         if(i==0){
          TAsAssigned = true;
+         }
          output.push(desiredOutput);
         }
         else{
             output.push([{id:'Not assigned yet',name:'Not assigned yet'}]);
         }
         }
-            response[`${course.name}`] = {TAsAssigned:TAsAssigned,TAs:output[0],instructors:output[1]};
+            response[`${course.id}`] = {TAsAssigned:TAsAssigned,TAs:output[0],instructors:output[1]};
             res.status(200).send(response);
 
         }
@@ -268,7 +270,9 @@ router.get('/staff-members/courses',[authentication],async(req,res)=>{
             const desiredOutput = result[i].value.map((elem)=>{
              return {id:elem.id,name:elem.name};
          });
+         if(i%2===0){
          TAsAssigned.push(true);
+         }
          output.push(desiredOutput);
         }
         else{
@@ -277,7 +281,7 @@ router.get('/staff-members/courses',[authentication],async(req,res)=>{
         }
         }
          for(let i = 0, j = 0;i<instructorCourses.length;i++,j+=2){
-            response[`${instructorCourses[i].name}`] = {TAsAssigned:TAsAssigned[i],TAs:output[j],instructors:output[j+1]};
+            response[`${instructorCourses[i].id}`] = {TAsAssigned:TAsAssigned[i],TAs:output[j],instructors:output[j+1]};
          
         }
         res.status(200).send(response);
