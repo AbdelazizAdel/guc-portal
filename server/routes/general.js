@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const express = require('express');
 const memberModel = require('../models/StaffMember');
 const requestModel = require('../models/Request');
+const departmentModel = require('../models/Department');
+const facultyModel = require('../models/Faculty');
 const {authentication} = require('./middleware');
 const superagent = require('superagent');
 const router = express.Router();
@@ -29,9 +31,9 @@ router.post('/login', async(req, res) => {
     const token = jwt.sign({id : member.id}, process.env.TOKEN_SECRET);
     if(member.firstLogin == undefined || member.firstLogin == true) {
         await memberModel.updateOne({email}, {firstLogin : false});
-        return res.header('auth_token', token).send('please change your password');
+        return res.header('auth_token', token).send(member);
     }
-    res.header('auth_token', token).send(member.id);
+    res.header('auth_token', token).send(member);
 });
 
 //route for logging out
@@ -339,6 +341,28 @@ router.get('/missingHours', [authentication], async(req, res) => {
     }
     result = result + cnt * 8.4;
     res.send({missingHours : result});
+})
+
+// route for getting the department of the user using the department id
+router.get('/departmentId', [authentication], async(req, res) => {
+    try {
+        const department = await departmentModel.find({id : req.body.member.department});
+        res.send(department);
+    }
+    catch(e) {
+        console.log(e);
+    }
+})
+
+// route for getting the faculty of the user using the department id
+router.get('/facultyId', [authentication], async(req, res) => {
+    try {
+        const faculty = await facultyModel.find({'departments':{"$in":`${req.body.member.department}`}});
+        res.send(faculty);
+    }
+    catch(e) {
+        console.log(e);
+    }
 })
 
 module.exports = router;
