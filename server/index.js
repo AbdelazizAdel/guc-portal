@@ -1,10 +1,9 @@
 const mongoose = require('mongoose');
-
 const { app } = require('./app.js');
 const dotenv = require('dotenv');
-dotenv.config();
 
-mongoose.connect(process.env.DB_URL_Test, {
+dotenv.config();
+mongoose.connect(process.env.DB_URL_TEST, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false 
