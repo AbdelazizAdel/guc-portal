@@ -9,23 +9,55 @@ const RequestModel = require('../models/Request');
 const SlotModel = require('../models/Slot');
 const {authentication} = require('./middleware');
 
-router.get('/courses', async(req, res)=>{
-    // const department = await DepartmentModel.findOne({HOD: HOD});
-    // if(!department)
-    //     return res.send('invalid data')
-    let course = {id: 'CSEN 701', name: 'Embedded systems'};
-    let course2 = {id: 'CSEN 702', name: 'Microprocessors'};
-    let course3 = {id: 'CSEN 703', name: 'Analysis and design of algorithms'};    
-    let course4 = {id: 'CSEN 704', name: 'Advanced computer lab'};    
+router.get('/courses',[authentication], async(req, res)=>{
+    const department = await DepartmentModel.findOne({HOD: req.body.member.id});
+    if(!department)
+        return res.send('invalid data')
+    let courses = await CourseModel.find({mainDepartment: department.id});
 
-    let courses = [];
-    courses.push(course);
-    courses.push(course2);
-    courses.push(course3);
-    courses.push(course4);
-
-    res.send(courses);
+    res.send(courses.map(course => {return {id: course.id, name: course.name}}));    
 })
+
+router.get('/courses/:id',[authentication], async(req, res)=>{
+    const department = await DepartmentModel.findOne({HOD: req.body.member.id});
+    if(!department)
+        return res.send('invalid data')
+    let course = await CourseModel.findOne({mainDepartment: department.id, id: req.params.id});
+
+    res.send(await getCourseData(course));    
+})
+
+async function getCourseData(course) {
+    return {id: course.id, name: course.name,
+        coordinator: course.coordinator,
+        TAs: await viewTAs(course.TAs),
+        instructors: await viewInstructors(course.instructors),
+        numSlots: course.numSlots,
+        mainDepartment : course.mainDepartment,
+        teachingDepartments : course.teachingDepartments
+    }
+}
+
+async function viewInstructors(instructors) {
+    let staff = [];
+
+    for(instructorId of instructors){
+        const instructor = await StaffMemberModel.findOne({id: instructorId});
+        staff.push(getProfile(instructor));
+    }
+    
+    return staff;
+}
+
+async function viewTAs(TAs) {
+    let staff = [];
+    for(TA_Id of TAs){
+        const TA = await StaffMemberModel.findOne({id: TA_Id});
+        staff.push(getProfile(TA));
+    }
+
+    return staff;
+}
 
 router.post('/assignInstructor',[authentication] ,async(req, res)=>{
     const schema = Joi.object({
