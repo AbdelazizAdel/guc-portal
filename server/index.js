@@ -9,6 +9,4 @@ mongoose.connect(process.env.DB_URL_TEST, {
 }).then(() => {
     console.log('Main database connected successfully');
 });
-app.listen(process.env.PORT, () => {
-    console.log(`Server listening at port ${process.env.PORT}`);
-});
+app.listen();
