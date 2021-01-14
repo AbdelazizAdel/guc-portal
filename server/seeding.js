@@ -1,6 +1,7 @@
 const memberModel = require('./models/StaffMember.js');
 const departmentModel = require('./models/Department.js');
 const CourseModel = require('./models/Course.js');
+const requestModel = require('./models/Request.js');
 
 const bcrypt = require('bcrypt');
 
@@ -88,13 +89,51 @@ async function createStaffMembers(){
             department: 'd-1',
             dayOff: i%7
         });
+
+        const salt = await bcrypt.genSalt();
+        const hashedPass = await bcrypt.hash(memberA.password, salt);
+        memberA.password = hashedPass;
+    
         staff.push(memberA);
         await memberA.save();
     }
     return staff;
 }
 
+async function createRequests() {
+    const req = new requestModel({
+        id: 'req-1',
+        sender: 'ac-2',
+        receiver: 'ac-1',
+        status: 'Pending',
+        content: 'day off',
+        type: "AnnualLeave",
+        duration: 5,
+        startDate: new Date()
+    }) 
+    await req.save();
+    const req2 = new requestModel({
+        id: 'req-2',
+        sender: 'ac-4',
+        receiver: 'ac-1',
+        status: 'Pending',
+        content: 'day off',
+        type: "SickLeave"
+    }) 
+    await req2.save();
+    const req3 = new requestModel({
+        id: 'req-3',
+        sender: 'ac-3',
+        receiver: 'ac-1',
+        status: 'Pending',
+        content: 'day off',
+        type: "DayOff",
+        startDate: new Date(),
+        dayOff : 5
+    }) 
+    await req3.save();
 
+}
 mongoose.connect(process.env.DB_URL_Test, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -104,5 +143,6 @@ mongoose.connect(process.env.DB_URL_Test, {
     await createHR();
     await createDepartment();
     await createStaffMembers();
+    await createRequests();
 });
 
