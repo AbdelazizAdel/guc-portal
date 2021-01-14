@@ -367,4 +367,8 @@ router.get('/facultyId', [authentication], async(req, res) => {
     }
 })
 
+router.get('/', (req, res) => {
+    res.send("First Heroku Deployment");
+})
+
 module.exports = router;
