@@ -273,7 +273,7 @@ router.post('/leave/request', [Authentication], async (req, res) => {
         }
         requestId++;
         await MetaDate.updateOne({'sequenceName' : 'request'}, {'lastId' : requestId});
-        let senderId = req.body.id;
+        let senderId = req.body.member.id;
         let duration = req.body.duration;
         let startDate = req.body.startDate;
         let dayOff = req.body.dayOff;
