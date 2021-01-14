@@ -55,7 +55,7 @@ router.post('/replacement/request', [Authentication], async (req, res) => {
         requestId++;
         await MetaDate.updateOne({'sequenceName' : 'request'}, {'lastId' : requestId});
         let courseId = req.body.courseId;
-        let sender = req.body.id;
+        let sender = req.body.member.id;
         receiver = req.body.receiver;
         if(courseId === undefined){
             res.status(404).send('Please choose a course');
@@ -109,7 +109,7 @@ router.post('/slotlinking/request', [Authentication], async (req, res) => {
         requestId++;
         await MetaDate.updateOne({'sequenceName' : 'request'}, {'lastId' : requestId});
         let courseId = req.body.courseId;
-        let sender = req.body.id;
+        let sender = req.body.member.id;
         if(courseId === undefined){
             res.status(404).send('Please choose a course');
         }
@@ -157,15 +157,16 @@ router.post('/slotlinking/request', [Authentication], async (req, res) => {
 });
 
 router.delete('/request/:requestID', [Authentication], async(req, res) => {
-    const {id} = req.body.member;
+    const id = req.body.member.id;
     const request = await Request.findOne({id : req.params.requestID});
+    // console.log(request)
     if(request == null)
         return res.send('There is no request with such id');
     if(request.status == 'Pending') {
         await Request.deleteOne({id : req.params.requestID});
         return res.send('request cancelled');
     }
-    if(request.status == 'Accepted' && request.type != 'SlotLinking' && request.type != 'DayOff' &&
+    if(request.status == 'Accepted' && request.type != 'SlotLinking' && request.type != 'ChangeDayOff' &&
         request.startDate.getTime() > new Date().getTime()) {
         if(request.type == 'SickLeave' || request.type == 'MaternityLeave') {
             await Request.deleteOne({id : req.params.requestID});
@@ -198,16 +199,21 @@ router.delete('/request/:requestID', [Authentication], async(req, res) => {
         res.send('This request cannot be cancelled');
 });
 
+router.post('/submittedRequests', [Authentication], async(req, res) => {
 
-router.get('/submittedRequests', [Authentication], async(req, res) => {
-    const {id} = req.body.member;
+    const id = req.body.member.id;
     if(req.body.status == undefined) {
         const requests = await Request.find().or([{sender : id}, {receiver : id}]);
-        return res.send(requests);
+        response = {'requests' : requests};
+        console.log(response)
+        return res.send(response);
     }
     const requests = await Request.find({status : req.body.status}).or([{sender : id}, {receiver : id}]);
-    return res.send(requests);
+    response = {'requests' : requests};
+    return res.send(response);
 })
+
+
 router.post('/changedayoff/request', [Authentication], async (req, res) => {
     try{
         let requestId = await MetaData.find({'sequenceName':`request`});
@@ -217,8 +223,8 @@ router.post('/changedayoff/request', [Authentication], async (req, res) => {
         }
         requestId++;
         await MetaDate.updateOne({'sequenceName' : 'request'}, {'lastId' : requestId});
-        let senderId = req.body.id;
-        let dayOff = req.body.dayOff;
+        let senderId = req.body.member.id;
+        let dayOff = req.body.dayOff.getDate();
 
         if(dayOff === undefined || dayOff < 1 || dayOff > 7){
             res.status(404).send('Please enter a valid week day number');
@@ -267,7 +273,7 @@ router.post('/leave/request', [Authentication], async (req, res) => {
         }
         requestId++;
         await MetaDate.updateOne({'sequenceName' : 'request'}, {'lastId' : requestId});
-        let senderId = req.body.id;
+        let senderId = req.body.member.id;
         let duration = req.body.duration;
         let startDate = req.body.startDate;
         let dayOff = req.body.dayOff;
@@ -368,59 +374,5 @@ router.post('/leave/request', [Authentication], async (req, res) => {
         res.status(404).send('fih moshkla ya mealem');
     }
 });
-
-router.delete('/request/:requestID', [Authentication], async(req, res) => {
-    const id = req.body.id;
-    const request = await Request.findOne({id : req.params.requestID});
-    if(request == null)
-        return res.send('There is no request with such id');
-    if(request.status == 'Pending') {
-        await Request.deleteOne({id : req.params.requestID});
-        return res.send('request cancelled');
-    }
-    if(request.status == 'Accepted' && request.type != 'SlotLinking' && request.type != 'DayOff' &&
-        request.startDate.getTime() > new Date().getTime()) {
-        if(request.type == 'SickLeave' || request.type == 'MaternityLeave') {
-            await Request.deleteOne({id : req.params.requestID});
-            return res.send('request cancelled');
-        }
-        if(request.type == 'AccidentalLeave' || request.type == 'AnnualLeave') {
-            const duration = request.duration == undefined ? 1 : request.duration;
-            await Member.updateOne({id}, {leaves : req.body.member.leaves - duration});
-            await Request.deleteOne({id : req.params.requestID});
-            return res.send('request cancelled');
-        }
-        if(request.type == 'ReplacementSlot') {
-            const slot = await Slot.findOne({id : request.slot});
-            if(slot == null)
-                return res.send('error happened during cancelation');
-            const replacement = await Replacement.findOne({
-                day : slot.day,
-                period : slot.period,
-                location : slot.location,
-                date : request.startDate
-            });
-            if(replacement == null)
-                return res.send('error happened during cancelation');
-            await Replacement.deleteOne({id : replacement.id});
-            await Request.deleteOne({id : req.params.requestID});
-            return res.send('request cancelled');
-        }
-    }
-    else
-        res.send('This request cannot be cancelled');
-});
-
-
-router.get('/submittedRequests', [Authentication], async(req, res) => {
-    const id = req.body.id;
-    if(req.body.status == undefined) {
-        const requests = await Request.find().or([{sender : id}, {receiver : id}]);
-        return res.send(requests);
-    }
-    const requests = await Request.find({status : req.body.status}).or([{sender : id}, {receiver : id}]);
-    return res.send(requests);
-})
-
 
 module.exports = router;

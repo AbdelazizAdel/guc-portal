@@ -100,7 +100,7 @@ describe('testing HOD requests', ()=>{
             id: 'req-1',
             sender: 'ac-2',
             receiver: 'ac-1',
-            status: 'pending',
+            status: 'Pending',
             content: 'day off',
             type: "DayOff",
             dayOff : 5
@@ -124,7 +124,7 @@ describe('testing HOD requests', ()=>{
             id: 'req-2',
             sender: 'ac-4',
             receiver: 'ac-1',
-            status: 'pending',
+            status: 'Pending',
             content: 'day off',
             type: "SickLeave"
         }) 
