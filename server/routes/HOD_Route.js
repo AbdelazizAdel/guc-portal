@@ -403,7 +403,7 @@ router.get('/viewTeachingAssignments/:courseId',[authentication] ,async (req, re
         let HOD_Id = req.body.member.id;
         const department = await DepartmentModel.findOne({HOD: HOD_Id});
         if(!department)
-            return res.send('invalid data')
+            return res.status(404).send('invalid data')
         let course = req.params.courseId;
         if(await CourseModel.findOne({id: course, mainDepartment: department.id})){
             let slots = await SlotModel.find({course: course});
@@ -412,7 +412,7 @@ router.get('/viewTeachingAssignments/:courseId',[authentication] ,async (req, re
                 let member = await StaffMemberModel.findOne({id: slot.instructor});
                 teachingAssignments.push(teachindAssignment(slot, member));
             }
-            res.send(teachingAssignments);        
+            res.status(200).send(teachingAssignments);        
         }else{
             res.status(404).send('invalid course');
         }
