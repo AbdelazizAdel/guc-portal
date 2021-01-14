@@ -536,15 +536,19 @@ server/index.js
             ```json
             { 
             "slotsInformation" : 
-                [   {"slotDay":1,
+                [   {"slotId":"slot1",
+                     "slotDay":1,
                      "slotPeriod" : 4,
                      "slotLocation" : "C7.305",
+                     "slotType" : "Lab",
                      "instructor" : "Not Assigned yet",
                      "course" : "Advanced Computer Lab"
                     },
-                    {"slotDay":3,
+                    {"slotId":"slot5",
+                     "slotDay":3,
                      "slotPeriod" : 2,
                      "slotLocation" : "C7.301",
+                     "slotType" : "Lab",
                      "instructor" : "Mohammed Ashry",
                      "course" : "Advanced Computer Lab"
                     }

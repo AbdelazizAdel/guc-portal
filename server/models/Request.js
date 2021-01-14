@@ -10,7 +10,7 @@ const RequestScheme = new mongoose.Schema({
     content: String,
     comment: String,
     type: {type:String, enum:['ReplacementSlot', 'AccidentalLeave', 'AnnualLeave', 'SickLeave', 'MaternityLeave', 'CompensationLeave',
-    'SlotLinking', 'DayOff']}, //not complete, add others when needed
+    'SlotLinking', 'ChangeDayOff']}, //not complete, add others when needed
     submissionDate: Date,
     startDate: Date,
     dayOff : Date,
