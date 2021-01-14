@@ -88,7 +88,7 @@ router.get('/instructors/coverage',[authentication],async(req,res)=>{
     }
     const response = {}; 
     for(let i=0;i<instructorCourses.length;i++){
-        const courseSlots = await Slot.find().and([{'instructor':{"$exists":true}},{'course':instructorCourses[i].id}]);
+        const courseSlots = await Slot.find().and([{'instructor':{"$exists":true,"$ne":null}},{'course':instructorCourses[i].id}]);
         const count = courseSlots.length;
         if(instructorCourses[i].numSlots == 0){
             response[`${instructorCourses[i].id}`] = null
@@ -175,13 +175,14 @@ router.get('/instructors/courses/:courseId/staff-members',[authentication],async
  */
 router.get('/courses/:courseId/slots-assignment',[authentication],async(req,res)=>{
     const courseId = req.params.courseId;
-    const instructorId = req.body.instructorId;
+    const instructorId = req.body.member.id;
     if(req.body.member == null ){
         return res.status(404).send('Instructor not found');
     }
     const course = await Course.findOne({'id':courseId});
 
     if(!course.instructors.includes(instructorId)){
+        console.log(course.instructors,instructorId,course.instructors.includes(instructorId));
         return res.status(403).send('This is not an instructor to this course');
     }
     let response = {};
@@ -189,7 +190,7 @@ router.get('/courses/:courseId/slots-assignment',[authentication],async(req,res)
     let allSlots =[];
     for(let i=0;i<courseSlots.length;i++){
         const member =courseSlots[i].instructor==null?'Not Assigned yet':(await StaffMember.findOne({'id':courseSlots[i].instructor})).name;
-        const resultstructure ={slotDay:courseSlots[i].day,slotPeriod:courseSlots[i].period,slotLocation:courseSlots[i].location,instructor:member,course:course.name};
+        const resultstructure ={slotId:courseSlots[i].id,slotDay:courseSlots[i].day,slotPeriod:courseSlots[i].period,slotLocation:courseSlots[i].location,slotType:courseSlots[i].slotType,instructor:member,course:course.name};
         allSlots.push(resultstructure);        
     }
     response['slotsInformation']=allSlots;
@@ -337,7 +338,6 @@ router.patch('/academic-members/:memberId/slots/:slotId',[authentication],async(
     const member = await StaffMember.find({'id':academicMemberId});
     if(member.length === 0){ 
         return res.status(404).send('The member you are trying to assign is not found!!');}
-    
     const course = await Course.findOne({'id':courseId});
     if(!course.instructors.includes(`${instructorId}`)){
         return res.status(403).send('You are not allowed to assign a slot to an academic member!!');
