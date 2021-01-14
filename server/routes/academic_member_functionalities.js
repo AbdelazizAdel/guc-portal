@@ -13,15 +13,15 @@ const { request } = require('express');
 
 router.use(express.json());
 
-router.get('/schedule', async (req, res)=>{
+router.get('/schedule', [Authentication], async (req, res)=>{
 
     try{
 
-        let staffId = req.body.id;
+        let staffId = req.body.member.id;
 
         let schedule = [];
 
-        let scheule = await Slot.find({'instructor':`${staffId}`});
+        schedule = await Slot.find({'instructor':`${staffId}`});
 
         let replacements = await Replacement.find({'instructor' : `${staffId}`});
         replacements = replacements.filter((replacement) => {
@@ -33,7 +33,9 @@ router.get('/schedule', async (req, res)=>{
         let date = new Date();
         date.getMonth();
         
-        scheule = schedule.concat(replacements);
+        console.log(schedule);
+
+        schedule = schedule.concat(replacements);
         response = {'schedule' : schedule};
         res.status(200).send(response);
     }
@@ -43,7 +45,7 @@ router.get('/schedule', async (req, res)=>{
     }
 });
 
-router.post('/replacement/request', async (req, res) => {
+router.post('/replacement/request', [Authentication], async (req, res) => {
     try{
         let requestId = await MetaData.find({'sequenceName':`request`});
         requestId = requestId[0].lastId;

@@ -18,6 +18,8 @@ const superagent = require('superagent');
 const StaffMember = require('../models/StaffMember');
 const Joi = require('joi');
 const day_ms = 86400000; // number of milliseconds in a day
+const dotenv = require('dotenv');
+dotenv.config();
 
 router.use(express.json());
 //router.use(auth)
@@ -558,7 +560,7 @@ function isYearValid(year) {
 
 // function which checks for valid month
 function isMonthValid(month) {
-    return /^(0[0-9]|1[0-1])$/.test(month);
+    return /^([0-9]|1[0-1])$/.test(month);
 }
 
 function isValidStaffId(id) {
@@ -635,7 +637,7 @@ async function getAttendanceRecords(token, id) {
         year = curMonth == 0 ? curYear - 1 : curYear;
         month = curMonth == 0 ? 11 : curMonth - 1;
     }
-    const response = await superagent.get(`http://localhost:3000/HR/attendance/${year}/${month}/${id}`).set('auth_token', token);
+    const response = await superagent.get(`http://localhost:${process.env.PORT}/HR/attendance/${year}/${month}/${id}`).set('auth_token', token);
 //    console.log(response.body)
     const records = response.body.map((elem) => {
             if(elem.signIn != undefined)

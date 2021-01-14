@@ -3,10 +3,14 @@ const jwt = require('jsonwebtoken');
 const express = require('express');
 const memberModel = require('../models/StaffMember');
 const requestModel = require('../models/Request');
+const departmentModel = require('../models/Department');
+const facultyModel = require('../models/Faculty');
 const {authentication} = require('./middleware');
 const superagent = require('superagent');
 const router = express.Router();
 const day_ms = 86400000; // number of milliseconds in a day
+const dotenv = require('dotenv');
+dotenv.config();
 
 //route for logging in
 router.post('/login', async(req, res) => {
@@ -27,9 +31,9 @@ router.post('/login', async(req, res) => {
     const token = jwt.sign({id : member.id}, process.env.TOKEN_SECRET);
     if(member.firstLogin == undefined || member.firstLogin == true) {
         await memberModel.updateOne({email}, {firstLogin : false});
-        return res.header('auth_token', token).send('please change your password');
+        return res.header('auth_token', token).send(member);
     }
-    res.header('auth_token', token).send(member.id);
+    res.header('auth_token', token).send(member);
 });
 
 //route for logging out
@@ -46,9 +50,9 @@ router.get('/profile', [authentication], async (req, res) => {
 //route for changing password
 router.post('/changePassword', [authentication], async(req, res) => {
     const {oldPass, newPass, member} = req.body;
-    if(oldPass == undefined)
+    if(oldPass === undefined)
         return res.status(401).send('old password is required');
-    if(newPass == undefined)
+    if(newPass === undefined || newPass === "")
         return res.status(401).send('new Password is required');
     if(typeof(oldPass) != 'string' || typeof(newPass) != 'string')
         return res.status(401).send('please enter valid data types');
@@ -76,15 +80,17 @@ router.post('/updateProfile', [authentication], async(req, res) => {
             return res.status(401).send('please enter valid data types');
         member.gender = gender;
     }
+    const data = {};
     if(email !== undefined) {
         if(!emailIsValid(email))
             return res.status(401).send('this is not a valid email');
         if(typeof(email) !== 'string')
             return res.status(401).send('please enter valid data types');
         member.email = email;
+        data.email = email;
     }
     await memberModel.updateOne({id : member.id}, member);
-    res.send('profile updated successfully');
+    res.send(data);
 })
 
 //route for signing in
@@ -140,7 +146,7 @@ function isYearValid(year) {
 
 // function which checks for valid month
 function isMonthValid(month) {
-    return /^(0[0-9]|1[0-1])$/.test(month);
+    return /^([0-9]|1[0-1])$/.test(month);
 }
 
 // route for viewing attendance of a specific month
@@ -337,6 +343,28 @@ router.get('/missingHours', [authentication], async(req, res) => {
     }
     result = result + cnt * 8.4;
     res.send({missingHours : result});
+})
+
+// route for getting the department of the user using the department id
+router.get('/departmentId', [authentication], async(req, res) => {
+    try {
+        const department = await departmentModel.findOne({id : req.body.member.department});
+        res.send(department);
+    }
+    catch(e) {
+        console.log(e);
+    }
+})
+
+// route for getting the faculty of the user using the department id
+router.get('/facultyId', [authentication], async(req, res) => {
+    try {
+        const faculty = await facultyModel.findOne({'departments':{"$in":`${req.body.member.department}`}});
+        res.send(faculty);
+    }
+    catch(e) {
+        console.log(e);
+    }
 })
 
 module.exports = router;
