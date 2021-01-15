@@ -477,10 +477,10 @@ router.route("/addMember",auth)
                         "officeLoc": Stribody.officeLocng,
                         "leaves": body.leaves, // indicates the number of leaves the staff member has taken
                         "attendance":body.attendance,
-                        "startDay":body.startDay,    // The day on which the Staff member started his job at the University
+                        "startDay": new Date(),    // The day on which the Staff member started his job at the University
                         "loggedIn": body.loggedIn, // determines if this user is logged in or not (has a valid token)
                         "notifications" : [],
-                        "firstLogin" : body.firstLogin,
+                        "firstLogin" : true ,
                         "department" : body.department
                        })
                 
@@ -718,7 +718,7 @@ async function getAttendanceRecords(token, id) {
         year = curMonth == 0 ? curYear - 1 : curYear;
         month = curMonth == 0 ? 11 : curMonth - 1;
     }
-    const response = await superagent.get(`http://localhost:3000/HR/attendance/${year}/${month}/${id}`).set('auth_token', token);
+    const response = await superagent.get(`https://gucportalguc.herokuapp.com/HR/attendance/${year}/${month}/${id}`).set('auth_token', token);
 //    console.log(response.body)
     const records = response.body.map((elem) => {
             if(elem.signIn != undefined)

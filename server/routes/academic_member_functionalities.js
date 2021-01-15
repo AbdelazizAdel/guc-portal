@@ -48,19 +48,24 @@ router.get('/schedule', [Authentication], async (req, res)=>{
 router.post('/replacement/request', [Authentication], async (req, res) => {
     try{
         let requestId = await MetaData.find({'sequenceName':`request`});
+        console.log(requestId);
         requestId = requestId[0].lastId;
         if(requestId === undefined){
             requestId = 1;
         }
-        requestId++;
-        await MetaDate.updateOne({'sequenceName' : 'request'}, {'lastId' : requestId});
+        // requestId++;
+        await MetaData.updateOne({'sequenceName' : 'request'}, {'lastId' : requestId + 1});
         let courseId = req.body.courseId;
         let sender = req.body.member.id;
         receiver = req.body.receiver;
+        console.log(courseId + " " + sender + " " + receiver);
         if(courseId === undefined){
             res.status(404).send('Please choose a course');
         }
         let senderCourse = await Course.find({'id': courseId});
+        if(senderCourse.length === 0){
+            res.status(404).send('Please choose a course');
+        }
         senderCourse = senderCourse[0].TAs.filter((TA) => {
             return TA === sender || TA === receiver;
         });
@@ -78,7 +83,7 @@ router.post('/replacement/request', [Authentication], async (req, res) => {
         }
         let request = new Request({
             id: requestId,
-            sender: req.body.id,
+            sender: sender,
             receiver: receiver,
             status: 'Pending',
             content: req.body.content,
@@ -106,8 +111,8 @@ router.post('/slotlinking/request', [Authentication], async (req, res) => {
         if(requestId === undefined){
             requestId = 1;
         }
-        requestId++;
-        await MetaDate.updateOne({'sequenceName' : 'request'}, {'lastId' : requestId});
+        // requestId++;
+        await MetaData.updateOne({'sequenceName' : 'request'}, {'lastId' : requestId + 1});
         let courseId = req.body.courseId;
         let sender = req.body.member.id;
         if(courseId === undefined){
@@ -130,7 +135,7 @@ router.post('/slotlinking/request', [Authentication], async (req, res) => {
         }
 
         receiver = course.coordinator;
-
+        let startDate = new Date(req.body.startDate);
         let submissionDate = new Date();
 
         let request = new Request({
@@ -142,7 +147,7 @@ router.post('/slotlinking/request', [Authentication], async (req, res) => {
             comment: req.body.comment,
             type: 'SlotLinking',
             submissionDate: submissionDate,
-            startDate: req.body.startDate,
+            startDate: startDate,
             duration: req.body.duration,
             slot: req.body.slot,
             attachmentURL : req.body.attachmentURL
@@ -209,6 +214,7 @@ router.post('/submittedRequests', [Authentication], async(req, res) => {
         return res.send(response);
     }
     const requests = await Request.find({status : req.body.status}).or([{sender : id}, {receiver : id}]);
+    console.log(requests)
     response = {'requests' : requests};
     return res.send(response);
 })
@@ -221,10 +227,11 @@ router.post('/changedayoff/request', [Authentication], async (req, res) => {
         if(requestId === undefined){
             requestId = 1;
         }
-        requestId++;
-        await MetaDate.updateOne({'sequenceName' : 'request'}, {'lastId' : requestId});
+        // requestId++;
+        await MetaData.updateOne({'sequenceName' : 'request'}, {'lastId' : requestId + 1});
         let senderId = req.body.member.id;
-        let dayOff = req.body.dayOff.getDate();
+        // console.log(req.body.dayOff.getDate() + 'hereeeeeeeeeeeeeeee');
+        let dayOff = new Date(req.body.dayOff).getDate();
 
         if(dayOff === undefined || dayOff < 1 || dayOff > 7){
             res.status(404).send('Please enter a valid week day number');
@@ -271,37 +278,48 @@ router.post('/leave/request', [Authentication], async (req, res) => {
         if(requestId === undefined){
             requestId = 1;
         }
-        requestId++;
-        await MetaDate.updateOne({'sequenceName' : 'request'}, {'lastId' : requestId});
+        // requestId++;
+        await MetaData.updateOne({'sequenceName' : 'request'}, {'lastId' : requestId + 1});
         let senderId = req.body.member.id;
         let duration = req.body.duration;
-        let startDate = req.body.startDate;
-        let dayOff = req.body.dayOff;
+        let startDate = new Date(req.body.startDate);
+        let dayOff = new Date(req.body.dayOff === undefined ? new Date() : req.body.dayOff);
         let content = req.body.content;
         let leaveType = req.body.leaveType;
         let attachmentUrl = req.body.attachmentURL;
 
         let submissionDate = new Date();
 
+
         if(startDate === undefined){
             res.status(404).send('enter start date');
+            return;
         }
 
         if(leaveType === undefined){
             res.status(404).send('Enter leave type');
+
+            return;
         }
 
         if((leaveType === 'AccidentalLeave' || leaveType === 'AnnualLeave' || leaveType === 'MaternityLeave' || leaveType === 'SickLeave') && duration === undefined){
             res.status(404).send('Enter duration');
+
+            return;
         }
 
         if(leaveType === 'AnnualLeave' && startDate < submissionDate){
             res.status(404).send('Please enter a valid start date');
+
+            return;
         }
 
         if((leaveType === 'SickLeave' || leaveType === 'MaternityLeave') && attachmentUrl === undefined){
             res.status(404).send("Provide the proper documents");
+            return;
         }
+
+
 
         let sender = await Member.find({'id' : senderId});
         sender = sender[0];
@@ -312,7 +330,7 @@ router.post('/leave/request', [Authentication], async (req, res) => {
 
         let startDay = sender.startDay;
         let leaves = sender.leaves;
-
+        // console.log(sender.id)
         var months;
         months = (submissionDate.getFullYear() - startDay.getFullYear()) * 12;
         months = months - startDay.getMonth() + 1;
@@ -322,31 +340,41 @@ router.post('/leave/request', [Authentication], async (req, res) => {
         }
 
         let remainingLeaves = months * 2.5 - leaves;
+        // console.log(remainingLeaves + ' ' + months + ' ' + leaves)
 
         if(leaveType === 'AccidentalLeave' && duration > 6){
             res.status(404).send('You have up to 6 days');
+
+            return;
         }
 
         if(leaveType === 'MaternityLeave' && sender.gender !== 'female'){
             res.status(404).send('You should be a woman :)');
+            return;
         }
 
         if((leaveType === 'AccidentalLeave' || leaveType === 'AnnualLeave')){
             if(duration > remainingLeaves){
                 res.status(404).send("You don't have these available leave days");
+
+                return;
             }
             else{
-                const updateResponnse = await Member.updateOne({'id' : senderId}, {'leaves' : (sender.leaves + duration)}); //not sure
+                let newLeaves = parseInt(leaves, 10) + parseInt(duration, 10);
+                const updateResponnse = await Member.updateOne({'id' : senderId}, {'leaves' : (newLeaves)}); //not sure
             }
         }
 
-        if(leaveType === 'CompensationLeave' && (dayOff.getFullYear !== submissionDate.getFullYear() || startDate.getFullYear() !== submissionDate.getFullYear() 
+
+        if(leaveType === 'CompensationLeave' && (dayOff.getFullYear() !== submissionDate.getFullYear() || startDate.getFullYear() !== submissionDate.getFullYear() 
         || !(startDate.getMonth() === submissionDate.getMonth() && (startDate.getDate() > 10 || submissionDate.getDate() < 11) || startDate.getMonth() === submissionDate.getMonth() - 1 && startDate.getDate() > 10 && submissionDate.getDate() < 11))){
             res.status(404).send('enter valid dates');
+            return;
         }
 
         if(leaveType === 'SickLeave' && startDate < submissionDate && Math.ceil((submissionDate-startDate)/(1000*60*60*24)) > 3){
             res.status(404).send('You can submit leave request by maximum 3 days');
+            return;
         }
         
 
@@ -372,6 +400,29 @@ router.post('/leave/request', [Authentication], async (req, res) => {
     catch(err) {
         console.log(err);
         res.status(404).send('fih moshkla ya mealem');
+    }
+});
+
+router.get('/notifications', [Authentication], async (req, res)=>{
+
+    try{
+
+        let staffId = req.body.member.id;
+
+        let notifications = [];
+
+        let sender = await Member.find({'id' : staffId});
+
+        notifications = sender[0].notifications;
+        
+        console.log( + ' ' + staffId);
+
+        response = {'notifications' : notifications === undefined ? [] : notifications};
+        res.status(200).send(response);
+    }
+    catch(err){
+            console.log(err);
+            res.status(404).send('fe blabizo 7asal hena');
     }
 });
 
