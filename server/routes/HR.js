@@ -477,10 +477,10 @@ router.route("/addMember",auth)
                         "officeLoc": Stribody.officeLocng,
                         "leaves": body.leaves, // indicates the number of leaves the staff member has taken
                         "attendance":body.attendance,
-                        "startDay":new Date(),    // The day on which the Staff member started his job at the University
+                        "startDay": new Date(),    // The day on which the Staff member started his job at the University
                         "loggedIn": body.loggedIn, // determines if this user is logged in or not (has a valid token)
                         "notifications" : [],
-                        "firstLogin" : true,
+                        "firstLogin" : true ,
                         "department" : body.department
                        })
                 
