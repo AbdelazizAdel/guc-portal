@@ -203,7 +203,7 @@ async function getAttendanceRecords(token) {
         year = curMonth == 0 ? curYear - 1 : curYear;
         month = curMonth == 0 ? 11 : curMonth - 1;
     }
-    const response = await superagent.get(`http://localhost:${process.env.PORT}/attendance/${year}/${month}`).set('auth_token', token);
+    const response = await superagent.get(`https://gucportalguc.herokuapp.com/attendance/${year}/${month}`).set('auth_token', token);
     const records = response.body.map((elem) => {
         if(elem.signIn != undefined)
             elem.signIn = new Date(elem.signIn);

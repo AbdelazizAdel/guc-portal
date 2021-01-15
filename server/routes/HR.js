@@ -718,7 +718,11 @@ async function getAttendanceRecords(token, id) {
         year = curMonth == 0 ? curYear - 1 : curYear;
         month = curMonth == 0 ? 11 : curMonth - 1;
     }
+<<<<<<< HEAD
+    const response = await superagent.get(`https://gucportalguc.herokuapp.com/HR/attendance/${year}/${month}/${id}`).set('auth_token', token);
+=======
     const response = await superagent.get(`http://localhost:3000/HR/attendance/${year}/${month}/${id}`).set('auth_token', token);
+>>>>>>> 7aaf95bcca506f96a317b6d11406417d2094a3be
 //    console.log(response.body)
     const records = response.body.map((elem) => {
             if(elem.signIn != undefined)
