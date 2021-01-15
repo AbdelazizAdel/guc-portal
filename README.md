@@ -740,6 +740,30 @@ server/index.js
         }
         ```
         * 2nd route name : ```/coordinator/courses/:courseId/slot-linking-requests```
+        * Functionality : returns all pending slot linking requests for a specific course
+        * Request type : **GET**
+        * Parameters : courseId refers to the course the coordinator is viewing its requests
+        * Response : An array of objects where each object has information about a single request*
+        * Example :
+        ```json
+        {
+            "slotRequests":[
+                {
+                    "requestId":"value1",
+                    "memberId" : "value2",
+                    "status" : "Pending",
+                    "memberName" : "Mohammed Ashry",
+                    "slotId" : "value3",
+                    "slotDay":  3,
+                    "slotPeriod" : 2,
+                    "slotLocation" : "C5.204",
+                    "content" : "I want this slot",
+                    "submissionDate" : "2020-12-25T17:11:53.955+00:00"
+                }
+            ]
+        }
+        ``` 
+        * 3rd route name : ```/coordinator/courses/:courseId/non-pending-slot-linking-requests```
         * Functionality : returns all slot linking requests for a specific course
         * Request type : **GET**
         * Parameters : courseId refers to the course the coordinator is viewing its requests
@@ -757,6 +781,8 @@ server/index.js
                     "slotPeriod" : 2,
                     "slotLocation" : "C5.204",
                     "content" : "I want this slot",
+                    "Comment" : "The request has been accepted",
+                    "status" : "Accepted",
                     "submissionDate" : "2020-12-25T17:11:53.955+00:00"
                 }
             ]
