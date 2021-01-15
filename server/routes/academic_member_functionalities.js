@@ -369,9 +369,6 @@ router.post('/leave/request', [Authentication], async (req, res) => {
         if(leaveType === 'CompensationLeave' && (dayOff.getFullYear() !== submissionDate.getFullYear() || startDate.getFullYear() !== submissionDate.getFullYear() 
         || !(startDate.getMonth() === submissionDate.getMonth() && (startDate.getDate() > 10 || submissionDate.getDate() < 11) || startDate.getMonth() === submissionDate.getMonth() - 1 && startDate.getDate() > 10 && submissionDate.getDate() < 11))){
             res.status(404).send('enter valid dates');
-            console.log(startDate + " " + content + ' ' + duration + ' ' + leaveType)
-            console.log(startDate.getFullYear() + ' ' + dayOff.getFullYear())
-            console.log(dayOff.getFullYear() !== submissionDate.getFullYear() || startDate.getFullYear() !== submissionDate.getFullYear())
             return;
         }
 
@@ -403,6 +400,29 @@ router.post('/leave/request', [Authentication], async (req, res) => {
     catch(err) {
         console.log(err);
         res.status(404).send('fih moshkla ya mealem');
+    }
+});
+
+router.get('/notifications', [Authentication], async (req, res)=>{
+
+    try{
+
+        let staffId = req.body.member.id;
+
+        let notifications = [];
+
+        let sender = await Member.find({'id' : staffId});
+
+        notifications = sender[0].notifications;
+        
+        console.log( + ' ' + staffId);
+
+        response = {'notifications' : notifications === undefined ? [] : notifications};
+        res.status(200).send(response);
+    }
+    catch(err){
+            console.log(err);
+            res.status(404).send('fe blabizo 7asal hena');
     }
 });
 
