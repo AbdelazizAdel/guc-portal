@@ -585,9 +585,23 @@ server/index.js
                 "memberGender" : "male",
                 "memberDayoff": 2,
                 "memberOfficeLoc" : "C7.305",
-                "memberDepartment" : "value1"
+                "memberDepartment" : "Computer Science",
+                "memberFaculty" : "Media Engineering And Technology"
             }
             ```
+            ***
+        * 3rd route name : ``'/instructor/department-information'``
+            * Functionality : return information about the department and faculty names of the instructor.
+            * Request type : **GET**
+            * Response : An object containing information about the department and faculty
+            * Example :
+            ```json
+            {
+                "departmentName" : "Computer Science",
+                "facultyName" : "Media Engineering And Technology"
+            }
+            ``` 
+
 ***
 * ####  View all the staff in his/her courses along with their profiles
     * Routes:
@@ -625,7 +639,8 @@ server/index.js
             "memberGender" : "male",
             "memberDayoff": 2,
             "memberOfficeLoc" : "C7.305",
-            "memberDepartment" : "value1"
+            "memberDepartment" : "Computer Science",
+            "memberFaculty" : "Media Engineering and Technology"
             }
             ```
 ***
