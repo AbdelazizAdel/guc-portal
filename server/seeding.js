@@ -2,6 +2,7 @@ const memberModel = require('./models/StaffMember.js');
 const departmentModel = require('./models/Department.js');
 const CourseModel = require('./models/Course.js');
 const requestModel = require('./models/Request.js');
+const slotModel = require('./models/Slot');
 
 const bcrypt = require('bcrypt');
 
@@ -134,6 +135,30 @@ async function createRequests() {
     await req3.save();
 
 }
+
+async function createSlots() {
+    for(let i=2;i<18;i++){
+        const slot = new slotModel({
+            id: 'slot-'+i,
+            day: i%7,
+            period: i%5,
+            location: `C${i%7}-${i}07`,
+            course: `CSEN 70${(i%4)+1}`,
+            instructor: `ac-${(i%6)+2}`
+        });
+        await slot.save();
+        const slot2 = new slotModel({
+            id: 'slot-'+(i+18),
+            day: i%7,
+            period: i%5,
+            location: `C${i%7}-${i}07`,
+            course: `CSEN 70${(i%4)+1}`,
+            instructor: `ac-${(i%6)+1}`
+        });
+        await slot2.save();
+
+    }
+}
 mongoose.connect(process.env.DB_URL_Test, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -144,5 +169,6 @@ mongoose.connect(process.env.DB_URL_Test, {
     await createDepartment();
     await createStaffMembers();
     await createRequests();
+    await createSlots();
 });
 
