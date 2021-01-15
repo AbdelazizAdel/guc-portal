@@ -106,7 +106,6 @@ router.get('/instructors/coverage',[authentication],async(req,res)=>{
 router.get('/instructors/courses',[authentication],async(req,res)=>{
     const instructorId = req.body.member.id;
     const instructorCourses = await Course.find({'instructors':{"$in":`${instructorId}`}});
-    //console.log(instructorCourses);
     if(instructorCourses.length == 0){
         return res.status(403).send('You are not allowed to assign slots');
     }
@@ -184,7 +183,6 @@ router.get('/courses/:courseId/slots-assignment',[authentication],async(req,res)
     const course = await Course.findOne({'id':courseId});
 
     if(!course.instructors.includes(instructorId)){
-        console.log(course.instructors,instructorId,course.instructors.includes(instructorId));
         return res.status(403).send('This is not an instructor to this course');
     }
     let response = {};
