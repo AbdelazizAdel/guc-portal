@@ -3,6 +3,7 @@ const courseModel =  require('../../server/models/Course.js');
 const slotModel = require('../../server/models/Slot.js');
 const departmentModel = require('../../server/models/Department.js');
 const facultyModel = require('../../server/models/Faculty.js');
+const requestModel = require('../../server/models/Request.js');
 const bcrypt = require('bcrypt');
 function createCourse(courseId,name,coordinator,tas,instructors,slots,mainDepartment,teachingDepartments){
     const course = new courseModel({
@@ -70,6 +71,20 @@ async function createStaffMember( id,email,password,name,gender,salary,dayOff,of
     await member.save();
     return member;
 }
+const createRequest = (id,sender,reciever,status,content,comment,type,slot) =>{
+    const req = new requestModel({
+        id:id,
+        sender:sender,
+        reciever:reciever,
+        status:status,
+        content:content,
+        type:type,
+        comment:comment,
+        submissionDate:new Date(),
+        slot:slot
+    });
+    return req;
+}
 module.exports = {
-    createCourse,createSlot,createStaffMember,createDepartment,createFaculty
+    createCourse,createSlot,createStaffMember,createDepartment,createFaculty,createRequest
 };
