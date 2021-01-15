@@ -14,8 +14,11 @@ router.get('/courses',[authentication], async(req, res)=>{
     if(!department)
         return res.send('invalid data')
     let courses = await CourseModel.find({mainDepartment: department.id});
-
-    res.send(courses.map(course => {return {id: course.id, name: course.name}}));    
+    let results = [];
+    for(course of courses){
+        results.push(await courseCoverage(course));
+    }
+    res.send(results);    
 })
 
 router.get('/courses/:id',[authentication], async(req, res)=>{
