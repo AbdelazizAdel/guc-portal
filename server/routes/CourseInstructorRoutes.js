@@ -3,6 +3,8 @@ const express = require('express');
 const StaffMember = require('../models/StaffMember.js');
 const Slot = require('../models/Slot.js');
 const Course = require('../models/Course.js');
+const Department = require('../models/Department.js');
+const Faculty = require('../models/Faculty.js');
 const {authentication} = require('./middleware.js');
 const router = express.Router();
 router.use(express.json());
@@ -214,6 +216,28 @@ router.get('/staff-members/department',[authentication],async(req,res)=>{
     res.status(200).send({staffMembers:membersId});
 
 });
+router.get('/instructor/department-information',[authentication],async(req,res)=>{
+    const instructorId = req.body.member.id;
+    const instructor = req.body.member;
+    if(instructor == null){
+        return res.status(404).send('There doesn\'t exist an Instructor with such Id.');
+    }
+    const instructorCourses = await Course.findOne({'instructors':{"$in":`${instructorId}`}});
+    if(instructorCourses == null){
+        return res.status(403).send('The Id provided is not of an instructor, so you can\'t access this information!!');
+    }
+    const department = Department.findOne({'id':instructor.department});
+    const faculty = Faculty.findOne({'departments':{'$in':`${instructor.department}`}});
+    Promise.allSettled([department,faculty]).then((result)=>{
+        if(result[0].status!=='fulfilled'|| result[1].status!=='fulfilled'){
+            return res.status(403).send('An error occured while accessing the information');
+        }
+        else{
+            return res.status(200).send({departmentName:result[0].value.name,facultyName:result[1].value.name});
+        }
+    }) 
+});
+
 router.get('/staff-members/department/:staffMemberId',[authentication],async(req,res)=>{
     const instructorId = req.body.member.id;
     const memberId = req.params.staffMemberId; // a member from the same department
@@ -232,8 +256,10 @@ router.get('/staff-members/department/:staffMemberId',[authentication],async(req
     if(instructor.department!==staffMember.department){
         return res.status(403).send('The Instructor and the staff member are not in the same department.')
     }
+    const department = await Department.findOne({'id':staffMember.department});
+    const faculty = await Faculty.findOne({'departments':{'$in':`${department.id}`}});
     res.status(200).send({memberName:staffMember.name,memberEmail:staffMember.email,memberGender:staffMember.gender,
-                         memberDayoff:staffMember.dayOff,memberOfficeLoc:staffMember.officeLoc,memberDepartment:staffMember.department});
+                         memberDayoff:staffMember.dayOff,memberOfficeLoc:staffMember.officeLoc,memberDepartment:department.name,memberFaculty:faculty.name});
 
 });
 // get all staff members who share the same courses as the instructor
@@ -305,8 +331,11 @@ router.get('/instructors/staff-members/:staffMemberId',[authentication],async(re
     if(instructorCourses == null){
         return res.status(403).send('You are not allowed to view this information!!');
     }
+    const department = await Department.findOne({'id':staffMember.department});
+    const faculty = await Faculty.findOne({'departments':{'$in':`${department.id}`}});
+    
     res.status(200).send({memberName:staffMember.name,memberEmail:staffMember.email,memberGender:staffMember.gender,
-                         memberDayoff:staffMember.dayOff,memberOfficeLoc:staffMember.officeLoc,memberDepartment:staffMember.department});
+                         memberDayoff:staffMember.dayOff,memberOfficeLoc:staffMember.officeLoc,memberDepartment:department.name,memberFaculty:faculty.name});
 
 });
 
