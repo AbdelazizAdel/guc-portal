@@ -3,7 +3,10 @@ const Request = require('../models/Request.js');
 const StaffMember = require('../models/StaffMember.js');
 const Slot = require('../models/Slot.js');
 const Course = require('../models/Course.js');
+const Location = require('../models/Location');
+const MetaData = require('../models/metaData.js');
 const {authentication} = require('./middleware');
+const { app } = require('../app.js');
 const router = express.Router();
 router.use(express.json());
 router.post('/request',async(req,res)=>{
@@ -195,18 +198,28 @@ router.patch('/coordinator/courses/:courseId',[authentication],async (req,res)=>
 
 router.post('/slot/add', [authentication], async (req,res)=>{
     try {
-        let slotId = await MetaData.find({'sequenceName':`slot`});
-        slotId = slotId[0].lastId;
-        if(slotId === undefined){
+        let slotId = await MetaData.findOne({'sequenceName':`slot`});
+        if(slotId === null){
             slotId = 1;
         }
-        slotId++;
-        await MetaDate.updateOne({'sequenceName' : 'slot'}, {'lastId' : slotId});
+        else{
+            slotId = slotId.lastId;
+
+        }
+        const id =slotId;
+        slotId=`slot${slotId}`;
+        const slotAtTheSameTime = await Slot.find({day:req.body.day,period:req.body.period,location:req.body.location});
+        if(slotAtTheSameTime.length!==0){
+            console.log('there is  a slot at the same time');
+            return res.status(403).send('There is an activity at this location at that time');
+        }
+        const locationexists = await Location.find({'name':req.body.location});
+        if(locationexists.length===0){
+            console.log('no such location');
+            return res.status(403).send('No such location exists');
+        }
         let sender = req.body.member.id;
         let courseId = req.body.course;
-        let instructorId = req.body.instructor;
-
-
         if(courseId === undefined){
             res.status(404).send('enter course id'); 
         }
@@ -214,28 +227,11 @@ router.post('/slot/add', [authentication], async (req,res)=>{
         course = course[0];
 
         if(sender !== course.coordinator){
-            res.status(404).send('Unauthorized');
+            res.status(401).send('Unauthorized');
         }
 
-        if(instructorId === undefined){
-            res.status(404).send('enter slot instructor id'); 
-        }
         
-        let courseInstructor = course.TAs.filter((instructor) => {
-            return instructor === instructorId;
-        });
-
-        let check = courseInstructor.length > 0;
-
-        courseInstructor = course.instructors.filter((instructor) => {
-            return instructor === instructorId;
-        });
-        check = check | courseInstructor.length > 0;
-        if(!check){
-            res.status(404).send('fih moshkla ya mealem');
-        }
-        
-        const responnse = await Course.updateOne({'id' : courseId}, {'numSlots' : course.numSlots + 1}); //not sure
+        const response = await Course.updateOne({'id' : courseId}, {'numSlots' : course.numSlots + 1}); //not sure
         
         slot = new Slot({
             'id': slotId,
@@ -244,9 +240,15 @@ router.post('/slot/add', [authentication], async (req,res)=>{
             'location': req.body.location,
             'slotType': req.body.slotType,
             'course': courseId,
-            'instructor': instructorId
         });
         await slot.save();
+        if(id!==1){
+        await MetaData.updateOne({'sequenceName' : 'slot'}, {'lastId' : id+1});
+        }
+        else{
+            const slotMeta = new MetaData({sequenceName:'slot',lastId:2});
+            await slotMeta.save();
+        }
         res.status(200).send('slot added successfully');
     }
     catch(err){
@@ -254,23 +256,33 @@ router.post('/slot/add', [authentication], async (req,res)=>{
         res.status(404).send('fih moshkla ya mealem');
     }
 });
+router.get('/isCoordinator/:courseId',[authentication],async(req,res)=>{
+    const courseId = req.params.courseId;    
+    const course = await Course.findOne({'id':courseId});
+    if(course!==null&&req.body.member.id===course.coordinator){
+        res.status(200).send({isCoordinator:true});
+    }
+    else{
 
-router.delete('/slot/delete', [authentication], async (req,res)=>{
+        res.status(200).send({isCoordinator:false});
+    }
+})
+
+router.delete('/courses/:courseId/slot/delete', [authentication], async (req,res)=>{
     try {
         let slotId = req.body.slot;
+        let courseId = req.params.courseId;
         let sender = req.body.member.id;
 
         if(slotId === undefined){
             res.status(404).send('enter slot id'); 
         }
 
-        let slot = await Slot.find({'id' : slotId});
-        slot = slot[0];
-        courseId = slot.course;
-
-        let course = await Course.find({'id': courseId});
-        course = course
-
+        let slot = await Slot.findOne({'id' : slotId,'course':courseId});
+        if(slot === null){
+            return res.status(403).send('no such slot exists');
+        }
+        const course = await Course.findOne({'id':courseId});
         if(sender !== course.coordinator){
             res.status(404).send('Unauthorized');
         }
@@ -285,57 +297,79 @@ router.delete('/slot/delete', [authentication], async (req,res)=>{
         res.status(404).send('fih moshkla ya mealem');
     }
 });
+router.get('/courses/:courseId/all-slots',[authentication],async(req,res)=>{
+    const courseId = req.params.courseId;
+    const course = await Course.findOne({'id':courseId});
+    const member = req.body.member;
+    if(course === undefined){
+        return res.status(403).send('No such course exists');
+    }
+    if(course.coordinator!==member.id){
+        return res.status(403).send('Unauthorized');
+    }
+    const slots = await Slot.find({'course':courseId});
+    const allSlots = [];
+    for(let i = 0;i<slots.length;i++){
+        allSlots.push(slots[i].id);
+    }
+    return res.status(200).send({slots:allSlots});
+})
+router.get('/courses/:courseId/slot-info/:slotId',[authentication],async(req,res)=>{
+    const courseId = req.params.courseId;
+    const slotId = req.params.slotId;
+    const course = await Course.findOne({'id':courseId});
+    if(course === undefined){
+        return res.status(403).send('No such course exists');
+    }
+    const member = req.body.member;
+    if(course.coordinator!==member.id){
+        return res.status(403).send('Unauthorized');
+    }
+    const slot = await Slot.findOne({'course':courseId,'id':slotId});
+    if(slot===undefined)
+        return res.status(403).send('No such slot exists');
 
-router.post('slot/update', [authentication], async (req, res) => {
-    try {
+    return res.status(200).send({slotInfo:{slotId:slotId,day:slot.day,period:slot.period,location:slot.location,slotType:slot.slotType}});
+})
+router.post('/courses/:courseId/slot/update', [authentication], async (req, res) => {
+        console.log('i entered');
         let slotId = req.body.slot;
         let sender = req.body.member.id;
-
+        const courseId = req.params.courseId;
         if(slotId === undefined){
-            res.status(404).send('enter slot id');
+            console.log('hi');
+            res.status(403).send('enter slot id');
         }
-
-        let slot = await Slot.find({'id' : slotId});
-        slot = slot[0];
-        courseId = slot.course;
-
-        let course = await Course.find({'id': courseId});
-        course = course[0];
+        let course = await Course.findOne({'id': courseId});
+        if(course===null){
+            console.log('no such course');
+            return res.status(403).send('No such course exists');
+        }
+        const locationexists = await Location.find({'name':req.body.location});
+        if(locationexists.length===0){
+            console.log('no such location');
+            return res.status(403).send('No such location exists');
+        }
 
         if(sender !== course.coordinator){
-            res.status(404).send('Unauthorized');
+            console.log('you are not a coordinator');
+            res.status(403).send('Unauthorized');
         }
-
-        let courseInstructor = course.TAs.filter((instructor) => {
-            return instructor === instructorId;
-        });
-        let check = courseInstructor.length > 0;
-
-        courseInstructor = course.instructors.filter((instructor) => {
-            return instructor === instructorId;
-        });
-        check = check | courseInstructor.length > 0;
-        if(!check){
-            res.status(404).send('fih moshkla ya mealem');
+        const slot = await Slot.findOne({'course':courseId,'id':slotId});
+        if(slot===undefined){
+            console.log('not same course');
+            return res.status(403).send('No such slot exists');
         }
-
         const updateResponnse = await Slot.updateOne({'id' : slotId}, {
-            'id': slotId,
             'day': req.body.day,
             'period': req.body.period,
             'location': req.body.location,
             'slotType': req.body.slotType,
-            'course': courseId,
-            'instructor': req.body.instructor
         });
 
         res.status(200).send('slot updated successfully');
-    }
-    catch(err){
-        console.log(err);
-        res.status(404).send('fih moshkla ya mealem');
-    }
-});
+    }    
+);
 
 
 module.exports = router;
