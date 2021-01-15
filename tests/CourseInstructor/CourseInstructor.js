@@ -1,2 +1,2 @@
 require('./courseCoverage.js');
-require('./assignSlots.js');
+//require('./assignSlots.js');

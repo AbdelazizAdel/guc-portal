@@ -14,8 +14,11 @@ router.get('/courses',[authentication], async(req, res)=>{
     if(!department)
         return res.send('invalid data')
     let courses = await CourseModel.find({mainDepartment: department.id});
-
-    res.send(courses.map(course => {return {id: course.id, name: course.name}}));    
+    let results = [];
+    for(course of courses){
+        results.push(await courseCoverage(course));
+    }
+    res.send(results);    
 })
 
 router.get('/courses/:id',[authentication], async(req, res)=>{
@@ -403,7 +406,7 @@ router.get('/viewTeachingAssignments/:courseId',[authentication] ,async (req, re
         let HOD_Id = req.body.member.id;
         const department = await DepartmentModel.findOne({HOD: HOD_Id});
         if(!department)
-            return res.send('invalid data')
+            return res.status(404).send('invalid data')
         let course = req.params.courseId;
         if(await CourseModel.findOne({id: course, mainDepartment: department.id})){
             let slots = await SlotModel.find({course: course});
@@ -412,7 +415,7 @@ router.get('/viewTeachingAssignments/:courseId',[authentication] ,async (req, re
                 let member = await StaffMemberModel.findOne({id: slot.instructor});
                 teachingAssignments.push(teachindAssignment(slot, member));
             }
-            res.send(teachingAssignments);        
+            res.status(200).send(teachingAssignments);        
         }else{
             res.status(404).send('invalid course');
         }

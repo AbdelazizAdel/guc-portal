@@ -3,6 +3,8 @@ const express = require('express');
 const StaffMember = require('../models/StaffMember.js');
 const Slot = require('../models/Slot.js');
 const Course = require('../models/Course.js');
+const Department = require('../models/Department.js');
+const Faculty = require('../models/Faculty.js');
 const {authentication} = require('./middleware.js');
 const router = express.Router();
 router.use(express.json());
@@ -88,7 +90,7 @@ router.get('/instructors/coverage',[authentication],async(req,res)=>{
     }
     const response = {}; 
     for(let i=0;i<instructorCourses.length;i++){
-        const courseSlots = await Slot.find().and([{'instructor':{"$exists":true}},{'course':instructorCourses[i].id}]);
+        const courseSlots = await Slot.find().and([{'instructor':{"$exists":true,"$ne":null}},{'course':instructorCourses[i].id}]);
         const count = courseSlots.length;
         if(instructorCourses[i].numSlots == 0){
             response[`${instructorCourses[i].id}`] = null
@@ -175,13 +177,14 @@ router.get('/instructors/courses/:courseId/staff-members',[authentication],async
  */
 router.get('/courses/:courseId/slots-assignment',[authentication],async(req,res)=>{
     const courseId = req.params.courseId;
-    const instructorId = req.body.instructorId;
+    const instructorId = req.body.member.id;
     if(req.body.member == null ){
         return res.status(404).send('Instructor not found');
     }
     const course = await Course.findOne({'id':courseId});
 
     if(!course.instructors.includes(instructorId)){
+        console.log(course.instructors,instructorId,course.instructors.includes(instructorId));
         return res.status(403).send('This is not an instructor to this course');
     }
     let response = {};
@@ -189,7 +192,7 @@ router.get('/courses/:courseId/slots-assignment',[authentication],async(req,res)
     let allSlots =[];
     for(let i=0;i<courseSlots.length;i++){
         const member =courseSlots[i].instructor==null?'Not Assigned yet':(await StaffMember.findOne({'id':courseSlots[i].instructor})).name;
-        const resultstructure ={slotDay:courseSlots[i].day,slotPeriod:courseSlots[i].period,slotLocation:courseSlots[i].location,instructor:member,course:course.name};
+        const resultstructure ={slotId:courseSlots[i].id,slotDay:courseSlots[i].day,slotPeriod:courseSlots[i].period,slotLocation:courseSlots[i].location,slotType:courseSlots[i].slotType,instructor:member,course:course.name};
         allSlots.push(resultstructure);        
     }
     response['slotsInformation']=allSlots;
@@ -213,6 +216,28 @@ router.get('/staff-members/department',[authentication],async(req,res)=>{
     res.status(200).send({staffMembers:membersId});
 
 });
+router.get('/instructor/department-information',[authentication],async(req,res)=>{
+    const instructorId = req.body.member.id;
+    const instructor = req.body.member;
+    if(instructor == null){
+        return res.status(404).send('There doesn\'t exist an Instructor with such Id.');
+    }
+    const instructorCourses = await Course.findOne({'instructors':{"$in":`${instructorId}`}});
+    if(instructorCourses == null){
+        return res.status(403).send('The Id provided is not of an instructor, so you can\'t access this information!!');
+    }
+    const department = Department.findOne({'id':instructor.department});
+    const faculty = Faculty.findOne({'departments':{'$in':`${instructor.department}`}});
+    Promise.allSettled([department,faculty]).then((result)=>{
+        if(result[0].status!=='fulfilled'|| result[1].status!=='fulfilled'){
+            return res.status(403).send('An error occured while accessing the information');
+        }
+        else{
+            return res.status(200).send({departmentName:result[0].value.name,facultyName:result[1].value.name});
+        }
+    }) 
+});
+
 router.get('/staff-members/department/:staffMemberId',[authentication],async(req,res)=>{
     const instructorId = req.body.member.id;
     const memberId = req.params.staffMemberId; // a member from the same department
@@ -231,8 +256,10 @@ router.get('/staff-members/department/:staffMemberId',[authentication],async(req
     if(instructor.department!==staffMember.department){
         return res.status(403).send('The Instructor and the staff member are not in the same department.')
     }
+    const department = await Department.findOne({'id':staffMember.department});
+    const faculty = await Faculty.findOne({'departments':{'$in':`${department.id}`}});
     res.status(200).send({memberName:staffMember.name,memberEmail:staffMember.email,memberGender:staffMember.gender,
-                         memberDayoff:staffMember.dayOff,memberOfficeLoc:staffMember.officeLoc,memberDepartment:staffMember.department});
+                         memberDayoff:staffMember.dayOff,memberOfficeLoc:staffMember.officeLoc,memberDepartment:department.name,memberFaculty:faculty.name});
 
 });
 // get all staff members who share the same courses as the instructor
@@ -304,8 +331,11 @@ router.get('/instructors/staff-members/:staffMemberId',[authentication],async(re
     if(instructorCourses == null){
         return res.status(403).send('You are not allowed to view this information!!');
     }
+    const department = await Department.findOne({'id':staffMember.department});
+    const faculty = await Faculty.findOne({'departments':{'$in':`${department.id}`}});
+    
     res.status(200).send({memberName:staffMember.name,memberEmail:staffMember.email,memberGender:staffMember.gender,
-                         memberDayoff:staffMember.dayOff,memberOfficeLoc:staffMember.officeLoc,memberDepartment:staffMember.department});
+                         memberDayoff:staffMember.dayOff,memberOfficeLoc:staffMember.officeLoc,memberDepartment:department.name,memberFaculty:faculty.name});
 
 });
 
@@ -337,7 +367,6 @@ router.patch('/academic-members/:memberId/slots/:slotId',[authentication],async(
     const member = await StaffMember.find({'id':academicMemberId});
     if(member.length === 0){ 
         return res.status(404).send('The member you are trying to assign is not found!!');}
-    
     const course = await Course.findOne({'id':courseId});
     if(!course.instructors.includes(`${instructorId}`)){
         return res.status(403).send('You are not allowed to assign a slot to an academic member!!');

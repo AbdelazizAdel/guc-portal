@@ -54,26 +54,26 @@ router.get('/coordinator/courses/:courseId/slot-linking-requests',[authenticatio
     }
     const slots = await Slot.find({'course':`${courseId}`}).or([{'instructor':{'$exists':false}},{'instructor':null}]);
     if(slots.length == 0){
-        return res.status(403).send('All slots are assigned to instructors!!');
+        return res.status(200).send({slotRequests:[]});
     }
     let cond = [];
     for(let i = 0;i < slots.length;i++){
     cond.push({'slot':`${slots[i].id}`});
     }
     const requests = await Request.find({'status':'Pending',type:'SlotLinking'}).or(cond);
-    console.log(requests);
+  //  console.log('requests',requests);
     let queries = [];
     for(let i = 0;i < requests.length;i++){
         queries.push(StaffMember.findOne({'id':`${requests[i].sender}`}));
         queries.push(Slot.findOne({'id':`${requests[i].slot}`}));
     }
-    console.log(queries);
+   // console.log('queries',queries);
     Promise.allSettled(queries).then((result)=>{
         output = [];
-        console.log(result.length);
         for(let i = 0,j = 0;i < result.length;i+=2,j++){
             let slotRequest ={};
             slotRequest.requestId = requests[j].id;
+            slotRequest.status=requests[j].status;
             slotRequest.memberId = result[i].value.id;
             slotRequest.memberName = result[i].value.name;
             slotRequest.slotId = result[i+1].value.id;
@@ -84,7 +84,63 @@ router.get('/coordinator/courses/:courseId/slot-linking-requests',[authenticatio
             slotRequest.content = requests[j].content;
             slotRequest.submissionDate = requests[j].submissionDate;
             output.push(slotRequest);
-            console.log(slotRequest);
+           // console.log(slotRequest);
+        }
+       // console.log(output);
+        return res.status(200).send({slotRequests:output});
+    });
+
+
+});
+router.get('/coordinator/courses/:courseId/non-pending-slot-linking-requests',[authentication],async(req,res)=>{
+    const coordinatorId = req.body.member.id;
+    const courseId = req.params.courseId;
+    const coordinator = req.body.member;
+    if(coordinator == null){
+        return res.status(404).send('The member you are trying to access is not found!!');
+    }
+    const course = await Course.findOne({'id':courseId});
+    if(course.coordinator !==coordinatorId){
+        return res.status(403).send('You don\'t have access to this information');
+    }
+    const slots = await Slot.find({'course':`${courseId}`});
+    console.log('This is slots',slots);
+    if(slots.length == 0){
+        return res.send({slotRequests:[]});
+    }
+    let cond = [];
+    for(let i = 0;i < slots.length;i++){
+    cond.push({'slot':`${slots[i].id}`});
+    }
+    const requests = await Request.find({'status':{'$ne':'Pending'},type:'SlotLinking'}).or(cond);
+    console.log(requests);
+    //console.log(requests);
+    let queries = [];
+    for(let i = 0;i < requests.length;i++){
+        queries.push(StaffMember.findOne({'id':`${requests[i].sender}`}));
+        queries.push(Slot.findOne({'id':`${requests[i].slot}`}));
+    }
+    //console.log(queries);
+    Promise.allSettled(queries).then((result)=>{
+        output = [];
+        console.log(result.length);
+        for(let i = 0,j = 0;i < result.length;i+=2,j++){
+            let slotRequest ={};
+            slotRequest.requestId = requests[j].id;
+            slotRequest.memberId = result[i].value.id;
+            slotRequest.status = requests[j].status;
+            slotRequest.comment = requests[j].comment;
+            slotRequest.memberName = result[i].value.name;
+            slotRequest.slotId = result[i+1].value.id;
+            slotRequest.slotDay = result[i+1].value.day;
+            slotRequest.slotPeriod = result[i+1].value.period;
+            slotRequest.slotLocation = result[i+1].value.location;
+            slotRequest.slotType = result[i+1].value.slotType;
+            slotRequest.content = requests[j].content;
+            slotRequest.comment = requests[j].comment;
+            slotRequest.submissionDate = requests[j].submissionDate;
+            output.push(slotRequest);
+          //  console.log(slotRequest);
         }
         return res.status(200).send({slotRequests:output});
     });
@@ -96,6 +152,7 @@ router.patch('/coordinator/courses/:courseId',[authentication],async (req,res)=>
     const coordinatorId = req.body.member.id;
     const courseId = req.params.courseId;
     const requestId = req.body.requestId;
+    const comment = req.body.comment;
     const requestResponse = req.body.requestResponse;
     const coordinator = req.body.member;
     if(coordinator == null){
@@ -124,14 +181,14 @@ router.patch('/coordinator/courses/:courseId',[authentication],async (req,res)=>
         return res.status(400).send('Bad request! the slot provided in the request doesn\'t match the course ');
     }
     if(requestResponse == 'Accepted'){
-        const query1 = Request.updateOne({'id':`${requestId}`},{'status':'Accepted'});
+        const query1 = Request.updateOne({'id':`${requestId}`},{'status':'Accepted','comment':comment});
         const query2 = Slot.updateOne({'id':`${request.slot}`},{'instructor': `${request.sender}`});
         Promise.allSettled([query1,query2]).then((result)=>{
             return res.status(200).send('Request has been successfully accepted!!');
         })
     }
     else{
-        await  Request.updateOne({'id':`${requestId}`},{'status':'Rejected'});
+        await  Request.updateOne({'id':`${requestId}`},{'status':'Rejected','comment':comment});
         return res.status(200).send('Request has been successfully rejected!!');
     }
 });

@@ -536,15 +536,19 @@ server/index.js
             ```json
             { 
             "slotsInformation" : 
-                [   {"slotDay":1,
+                [   {"slotId":"slot1",
+                     "slotDay":1,
                      "slotPeriod" : 4,
                      "slotLocation" : "C7.305",
+                     "slotType" : "Lab",
                      "instructor" : "Not Assigned yet",
                      "course" : "Advanced Computer Lab"
                     },
-                    {"slotDay":3,
+                    {"slotId":"slot5",
+                     "slotDay":3,
                      "slotPeriod" : 2,
                      "slotLocation" : "C7.301",
+                     "slotType" : "Lab",
                      "instructor" : "Mohammed Ashry",
                      "course" : "Advanced Computer Lab"
                     }
@@ -581,9 +585,23 @@ server/index.js
                 "memberGender" : "male",
                 "memberDayoff": 2,
                 "memberOfficeLoc" : "C7.305",
-                "memberDepartment" : "value1"
+                "memberDepartment" : "Computer Science",
+                "memberFaculty" : "Media Engineering And Technology"
             }
             ```
+            ***
+        * 3rd route name : ``'/instructor/department-information'``
+            * Functionality : return information about the department and faculty names of the instructor.
+            * Request type : **GET**
+            * Response : An object containing information about the department and faculty
+            * Example :
+            ```json
+            {
+                "departmentName" : "Computer Science",
+                "facultyName" : "Media Engineering And Technology"
+            }
+            ``` 
+
 ***
 * ####  View all the staff in his/her courses along with their profiles
     * Routes:
@@ -621,7 +639,8 @@ server/index.js
             "memberGender" : "male",
             "memberDayoff": 2,
             "memberOfficeLoc" : "C7.305",
-            "memberDepartment" : "value1"
+            "memberDepartment" : "Computer Science",
+            "memberFaculty" : "Media Engineering and Technology"
             }
             ```
 ***
@@ -721,6 +740,30 @@ server/index.js
         }
         ```
         * 2nd route name : ```/coordinator/courses/:courseId/slot-linking-requests```
+        * Functionality : returns all pending slot linking requests for a specific course
+        * Request type : **GET**
+        * Parameters : courseId refers to the course the coordinator is viewing its requests
+        * Response : An array of objects where each object has information about a single request*
+        * Example :
+        ```json
+        {
+            "slotRequests":[
+                {
+                    "requestId":"value1",
+                    "memberId" : "value2",
+                    "status" : "Pending",
+                    "memberName" : "Mohammed Ashry",
+                    "slotId" : "value3",
+                    "slotDay":  3,
+                    "slotPeriod" : 2,
+                    "slotLocation" : "C5.204",
+                    "content" : "I want this slot",
+                    "submissionDate" : "2020-12-25T17:11:53.955+00:00"
+                }
+            ]
+        }
+        ``` 
+        * 3rd route name : ```/coordinator/courses/:courseId/non-pending-slot-linking-requests```
         * Functionality : returns all slot linking requests for a specific course
         * Request type : **GET**
         * Parameters : courseId refers to the course the coordinator is viewing its requests
@@ -738,6 +781,8 @@ server/index.js
                     "slotPeriod" : 2,
                     "slotLocation" : "C5.204",
                     "content" : "I want this slot",
+                    "Comment" : "The request has been accepted",
+                    "status" : "Accepted",
                     "submissionDate" : "2020-12-25T17:11:53.955+00:00"
                 }
             ]
